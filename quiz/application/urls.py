@@ -8,10 +8,6 @@ urlpatterns = [
     path('register/', RegistrationAPI.as_view(), name='register'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    # Для 2 верхних маршрутов будет возвращаться ответ "из коробки"
-    # При отправке Post будет возвращаться аксесс и рефреш в первом и рефреш во 2
-    # Я не контролирую что и как возвращается, но во всех проектах, что видел больше ничего не добавляли
-    # значит фронтендер сможет разобраться
     path('categories/', CategoryList.as_view(), name='categories'),
     path('category/<int:pk>', CategoryDetail.as_view(), name='category'),
     path('quizzes/', QuizList.as_view(), name='quizzes'),
