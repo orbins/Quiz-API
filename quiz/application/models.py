@@ -1,10 +1,16 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-# Это для того, чтобы сделать строки переводимыми на другие языки.
+from django.contrib.auth import get_user_model
+# Добавляет переводимость строкам
+
+User = get_user_model()
 
 
 class Categories(models.Model):
+    """Модель категорий квизов"""
     name = models.CharField(max_length=255)
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _("Category")
@@ -15,11 +21,15 @@ class Categories(models.Model):
 
 
 class Quizzes(models.Model):
+    """Модель квизов"""
     title = models.CharField(max_length=255, default=_("New Quiz"),
                              verbose_name=_("Quiz title"))
     category = models.ForeignKey(Categories, default=1,
                                  on_delete=models.CASCADE)
+    # 1 квиз относится к 1 категории
     date_created = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _("Quiz")
@@ -31,9 +41,9 @@ class Quizzes(models.Model):
 
 
 class Updated(models.Model):
-    # для обновления вопросов и ответов?
     # Абстрактный класс, полезен, когда нужно поместить
-    # общую/одинаковую инфу в несколько моделей
+    # общие свойства в несколько моделей
+    # для добавления свойства отслеживания обновлений
     date_updated = models.DateTimeField(
         verbose_name=_("Last updated"), auto_now=True
     )
@@ -43,6 +53,9 @@ class Updated(models.Model):
 
 
 class Questions(Updated):
+    """Модель для вопросов"""
+
+    # сложность вопроса
     SCALE = (
         (0, _('Fundamental')),
         (1, _('Beginner')),
@@ -51,12 +64,13 @@ class Questions(Updated):
         (4, _('Expert')),
     )
 
+    # Тип вопроса, с одним ответом или несколькими
     STYLE = (
         (0, _('Multiple choice')),
         (1, _('Single Choice')),
     )
-    # Попробую 2 разных способа определения значений для полей с выбором
 
+    # 1 вопрос может относиться к 1 квизу
     quiz = models.ForeignKey(Quizzes, related_name='questions',
                              on_delete=models.CASCADE)
     title = models.CharField(max_length=500)
@@ -66,8 +80,10 @@ class Questions(Updated):
                                      verbose_name=_("Difficulty"))
     date_created = models.DateTimeField(auto_now_add=True,
                                         verbose_name=_("Date Created"))
-    is_active = models.BooleanField(default=False,
+    is_active = models.BooleanField(default=True,
                                     verbose_name=_("Active Status"))
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE,)
 
     class Meta:
         verbose_name = _("Question")
@@ -79,11 +95,16 @@ class Questions(Updated):
 
 
 class Answers(Updated):
+    """Модель для ответов на вопрос"""
+
+    # 1 ответ относится только к 1 вопросу
     question = models.ForeignKey(Questions, related_name='answers',
                                  on_delete=models.CASCADE)
     text = models.TextField(max_length=500,
                             verbose_name=_("Answer Text"))
     is_right = models.BooleanField(default=False)
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _("Answer")
@@ -92,4 +113,4 @@ class Answers(Updated):
 
     def __str__(self):
         return self.text
-# InlineModel позволяет редактировать модель на странице родительской
+

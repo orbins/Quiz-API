@@ -10,33 +10,62 @@ User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для обработки
+    CRUD операций с категориями
+    """
+    # Автор - по умолчанию пользователь, который делает запрос
+    author = serializers.HiddenField(
+        default=serializers.CurrentUserDefault())
+    author_name = serializers.StringRelatedField(
+        source='author',
+        read_only=True)
 
     class Meta:
         model = Categories
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'author', 'author_name')
 
 
 class QuizSerializer(serializers.ModelSerializer):
-    category = serializers.CharField(source='category.name')
+    """
+    Обрабатывает создание, обновление
+    удаление, получение квиза, а также
+    получения списка квизов
+    """
+    title = serializers.CharField(
+        required=True
+    )
+    category = serializers.CharField(
+        source='category.name')
+    author = serializers.HiddenField(
+        default=serializers.CurrentUserDefault())
+    author_name = serializers.StringRelatedField(
+        source='author',
+        read_only=True)
 
     class Meta:
         model = Quizzes
-        fields = ('id', 'title', 'category')
+        fields = ('id', 'title', 'category',
+                  'author', 'author_name')
 
     def create(self, validated_data):
         category_name = validated_data['category']['name']
+        # Если категория есть, выбираю её, если нет - создаю новую
         if Categories.objects.filter(name=category_name).exists():
             category = Categories.objects.get(name=category_name)
         else:
-            category = Categories.objects.create(name=category_name)
-        return Quizzes.objects.create(title=validated_data['title'], category=category)
+            category = Categories.objects.create(name=category_name,
+                                                 author=validated_data['author'])
+        return Quizzes.objects.create(title=validated_data['title'], category=category,
+                                      author=validated_data['author'])
 
     def update(self, instance, validated_data):
         category_name = validated_data['category']['name']
         if Categories.objects.filter(name=category_name).exists():
             category = Categories.objects.get(name=category_name)
         else:
-            category = Categories.objects.create(name=category_name)
+            category = Categories.objects.create(name=category_name,
+                                                 author=validated_data['author'])
         instance.title = validated_data.get('title', instance.title)
         instance.category = category
         instance.save()
@@ -121,33 +150,31 @@ class SingleAnswerSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для обработки созжания пользователей
+    """
+
+    # добавляю валидатор уникальности почты и флаг
+    # обязательно для заполнения
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
-    # добавляю валидатор, проверяющий на уникальность почты в модели, если данные не проходят валидацию ошибка передастся в виде ответа на front
-    # А также флаг "обязательно для заполнения"
+    # Добавляю валидатор проверки пароля
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
-    # write_only означает, что поле не будет явно передаваться (т.е нельзя увидеть в теле запроса)
-    # при передаче серверу (GET не доступен для CreateAPIVIEW)
-    # Добавляю валидатор для пароля, без него пароль не будет хешироваться в бд
 
     class Meta:
         model = User
         fields = ('email', 'username', 'password', 'password2', 'first_name', 'last_name')
-        # параметр позволяет добавить флаги полям, но если поля определены
-        # в сериализаторе или параметре fields, этот параметр игнорируется
-        # т.е сейчас бесполезен
-        extra_kwargs = {
-            'first_name': {'required': True},
-            'last_name': {'required': True},
-        }
 
-    # Проверка полей на совпадение
     def validate(self, validated_data):
+        """
+        Доп. валидация для проверки совпадения паролей
+        """
         if validated_data['password'] != validated_data['password2']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
+            raise serializers.ValidationError({"password, password2":
+                                               "Password fields didn't match."})
         return validated_data
 
     def create(self, validated_data):
@@ -158,5 +185,6 @@ class UserSerializer(serializers.ModelSerializer):
             last_name=validated_data['last_name']
         )
         user.set_password(validated_data['password'])
+        # пароль хешируется и устанавливается
         user.save()
         return user
