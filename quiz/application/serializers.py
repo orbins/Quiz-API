@@ -25,6 +25,15 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Categories
         fields = ('id', 'name', 'author', 'author_name')
 
+    def validate(self, attrs):
+        # Названия категорий не должны повторяться для пользователя
+        author = attrs['author']
+        name = attrs['name']
+        if Categories.objects.filter(name=name).exists():
+            raise serializers.ValidationError({
+                  "error": "Такая категория уже существует!"})
+        return attrs
+
 
 class QuizSerializer(serializers.ModelSerializer):
     """
@@ -35,6 +44,7 @@ class QuizSerializer(serializers.ModelSerializer):
     title = serializers.CharField(
         required=True
     )
+    # принимается и возвращается имя категории
     category = serializers.CharField(
         source='category.name')
     author = serializers.HiddenField(
@@ -48,28 +58,24 @@ class QuizSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'category',
                   'author', 'author_name')
 
-    def create(self, validated_data):
-        category_name = validated_data['category']['name']
-        # Если категория есть, выбираю её, если нет - создаю новую
+    def validate(self, attrs):
+        author = attrs['author']
+        category_name = attrs['category']['name']
+        title = attrs['title']
         if Categories.objects.filter(name=category_name).exists():
             category = Categories.objects.get(name=category_name)
+            # Названия квизов не должны повторяться для категорий
+            if Quizzes.objects.filter(title=title,
+                                      category=category,
+                                      author=author).exists():
+                raise serializers.ValidationError({"error":
+                                                   f"У вас уже есть квиз с именем {title} в категории {category}"})
         else:
             category = Categories.objects.create(name=category_name,
-                                                 author=validated_data['author'])
-        return Quizzes.objects.create(title=validated_data['title'], category=category,
-                                      author=validated_data['author'])
-
-    def update(self, instance, validated_data):
-        category_name = validated_data['category']['name']
-        if Categories.objects.filter(name=category_name).exists():
-            category = Categories.objects.get(name=category_name)
-        else:
-            category = Categories.objects.create(name=category_name,
-                                                 author=validated_data['author'])
-        instance.title = validated_data.get('title', instance.title)
-        instance.category = category
-        instance.save()
-        return instance
+                                                 author=attrs['author'])
+        # Заменяю имя категории на объект
+        attrs['category'] = category
+        return attrs
 
 
 class AnswerSerializer(serializers.ModelSerializer):
@@ -82,42 +88,37 @@ class AnswerSerializer(serializers.ModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     # конвертирует вопрос/все вопросы и для каждого из них все возможные ответы
     # Конвертирует рандомный вопрос и все возможные ответы для него
-    # answers = serializers.StringRelatedField(many=True)
-    # answers = serializers.PrimaryKeyRelatedField(many=True, queryset = Answers.objects.all())
-    # Отвечает за отображение первичных ключей записей связанной модели, хоть в Queryset
-    # выбираются все, но скорее всего во view под капотом происходит фильтрация данных связ. модели
     answers = AnswerSerializer(many=True, read_only=True)
-    # соответствует question.answers (отфильтрованные,
-    # т.е соответсвующие конкретной записи (question)), передаётся в сериализатор
-    quiz = serializers.CharField(source='quiz.title')
-    # можно указать и id
-    # если используется values, то нужно явно указывать поле, на которое ссылаюсь как выше category__name
-    # без values можно указать атрибут через точку
+    quiz = serializers.PrimaryKeyRelatedField(queryset=Quizzes.objects.all(),
+                                              write_only=True)
+    quiz_title = serializers.StringRelatedField(source='quiz',
+                                                read_only=True)
+    author = serializers.HiddenField(
+        default=serializers.CurrentUserDefault())
+    author_name = serializers.StringRelatedField(
+        source='author',
+        read_only=True)
+    is_active = serializers.BooleanField(read_only=True,
+                                         default=True)
 
     class Meta:
         model = Questions
-        fields = ('quiz', 'title', 'id', 'kind', 'difficulty',
-                  'is_active', 'answers')
+        fields = ('quiz', 'quiz_title', 'id', 'title',
+                  'kind', 'difficulty', 'is_active',
+                  'author', 'author_name', 'answers')
 
-    def create(self, validated_data):
-        quiz_name = validated_data['quiz']['title']
-        if Quizzes.objects.filter(title=quiz_name).exists():
-            validated_data['quiz'] = Quizzes.objects.get(title=quiz_name)
-            return Questions.objects.create(**validated_data)
-        raise Http404
-
-    def update(self, instance, validated_data):
-        quiz_name = validated_data['quiz']['title']
-        if Quizzes.objects.filter(title=quiz_name).exists():
-            validated_data['quiz'] = Quizzes.objects.get(title=quiz_name)
-            instance.quiz = validated_data.get('quiz', instance.quiz)
-            instance.title = validated_data.get('title', instance.title)
-            instance.kind = validated_data.get('kind', instance.kind)
-            instance.difficulty = validated_data.get('difficulty', instance.difficulty)
-            instance.is_active = validated_data.get('is_active', instance.is_active)
-            instance.save()
-            return instance
-        raise Http404
+    #def update(self, instance, validated_data):
+    #    quiz_name = validated_data['quiz']['title']
+    #    if Quizzes.objects.filter(title=quiz_name).exists():
+    #        validated_data['quiz'] = Quizzes.objects.get(title=quiz_name)
+    #        instance.quiz = validated_data.get('quiz', instance.quiz)
+    #        instance.title = validated_data.get('title', instance.title)
+    #        instance.kind = validated_data.get('kind', instance.kind)
+    #        instance.difficulty = validated_data.get('difficulty', instance.difficulty)
+    #        instance.is_active = validated_data.get('is_active', instance.is_active)
+    #        instance.save()
+    #        return instance
+    #    raise Http404
 
 
 class SingleAnswerSerializer(serializers.ModelSerializer):

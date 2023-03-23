@@ -41,7 +41,7 @@ class CategoryList(generics.ListCreateAPIView):
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     """
-    Для обновления, добавления
+    Для обновления, получения
     и удаления категорий доступно
     только их авторам
     """
@@ -66,24 +66,27 @@ class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
     и удаление квиза
     """
     queryset = Quizzes.objects.select_related(
-        'category').only('title', 'category__name', 'date_created').all()
+        'category').only('title', 'category__name',
+                         'date_created').all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthorOrReadOnly]
 
 
 class QuizQuestions(generics.ListCreateAPIView):
+    """
+    Получение списка вопросов и создание вопроса
+    """
     serializer_class = QuestionSerializer
-    lookup_url_kwarg = 'topic'
 
     def get_queryset(self):
-        return Questions.objects.prefetch_related('answers').select_related(
-                                                            'quiz').filter(quiz__title=self.kwargs['topic']).filter(is_active=True)
+        return Questions.objects.prefetch_related(
+                    'answers').select_related(
+                    'quiz').filter(is_active=True)
 
 
 class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = QuestionSerializer
-    queryset = Questions.objects.prefetch_related('answers').select_related(
-                                                            'quiz').all()
+    queryset = Questions.objects.prefetch_related('answers').select_related('quiz').all()
     permission_classes = [IsAuthorOrReadOnly]
 
 
