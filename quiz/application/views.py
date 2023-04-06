@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 
 from django.contrib.auth import get_user_model
 
+
 from .permissions import IsAuthorOrReadOnly
 from .models import Quizzes, Categories, Questions, Answers
 from .serializers import (QuizSerializer, QuestionSerializer,
@@ -31,12 +32,12 @@ def api_root(request, format=None):
 
 class CategoryList(generics.ListCreateAPIView):
     """
-    Для просмотра списка всех
-    существующих категорий и
-    создания новых
+    Для просмотра списка всесуществующих категорий и
+    создания новых с возможностью фильтрации по автору
     """
     queryset = Categories.objects.all()
     serializer_class = CategorySerializer
+    filterset_fields = ('author', )
 
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
