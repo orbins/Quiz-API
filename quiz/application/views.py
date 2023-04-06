@@ -85,6 +85,10 @@ class QuizQuestions(generics.ListCreateAPIView):
 
 
 class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Обновление, удаление, чтение конкретного вопроса,
+    доступно только для автора самого вопроса
+    """
     serializer_class = QuestionSerializer
     queryset = Questions.objects.prefetch_related('answers').select_related('quiz').all()
     permission_classes = [IsAuthorOrReadOnly]
@@ -92,11 +96,10 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class RandomQuestion(generics.ListAPIView):
     serializer_class = QuestionSerializer
-    lookup_url_kwarg = 'topic'
 
     def get_queryset(self):
         return Questions.objects.prefetch_related('answers').select_related(
-                'quiz').filter(quiz__title=self.kwargs['topic']).filter(is_active=True).order_by('?')[:1]
+                'quiz').filter(is_active=True).order_by('?')[:1]
 
 
 class AnswerDetail(generics.RetrieveUpdateDestroyAPIView):

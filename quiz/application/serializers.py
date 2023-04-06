@@ -86,6 +86,10 @@ class AnswerSerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    """
+    Обрабатывает создание, получение списка,
+    обновление и удаление вопросов
+    """
     # конвертирует вопрос/все вопросы и для каждого из них все возможные ответы
     # Конвертирует рандомный вопрос и все возможные ответы для него
     answers = AnswerSerializer(many=True, read_only=True)
@@ -98,8 +102,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     author_name = serializers.StringRelatedField(
         source='author',
         read_only=True)
-    is_active = serializers.BooleanField(read_only=True,
-                                         default=True)
+    is_active = serializers.BooleanField(default=True)
 
     class Meta:
         model = Questions
@@ -107,18 +110,14 @@ class QuestionSerializer(serializers.ModelSerializer):
                   'kind', 'difficulty', 'is_active',
                   'author', 'author_name', 'answers')
 
-    #def update(self, instance, validated_data):
-    #    quiz_name = validated_data['quiz']['title']
-    #    if Quizzes.objects.filter(title=quiz_name).exists():
-    #        validated_data['quiz'] = Quizzes.objects.get(title=quiz_name)
-    #        instance.quiz = validated_data.get('quiz', instance.quiz)
-    #        instance.title = validated_data.get('title', instance.title)
-    #        instance.kind = validated_data.get('kind', instance.kind)
-    #        instance.difficulty = validated_data.get('difficulty', instance.difficulty)
-    #        instance.is_active = validated_data.get('is_active', instance.is_active)
-    #        instance.save()
-    #        return instance
-    #    raise Http404
+    def validate(self, attrs):
+        if attrs.get('quiz', None):
+            quiz = attrs['quiz']
+            author = quiz.author
+            if author != self.context['request'].user:
+                raise serializers.ValidationError({"quiz":
+                                                   "Вы не можете добавить вопрос в квиз, автором которого не являетесь!"})
+        return attrs
 
 
 class SingleAnswerSerializer(serializers.ModelSerializer):
@@ -152,7 +151,7 @@ class SingleAnswerSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для обработки созжания пользователей
+    Сериализатор для обработки создания пользователей
     """
 
     # добавляю валидатор уникальности почты и флаг

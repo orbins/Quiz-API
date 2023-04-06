@@ -1,7 +1,9 @@
 from django.urls import path, include
-from .views import *
-# Для получения jwt-токенов при входе и их обновления
+
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
+
+from .views import *
+
 
 urlpatterns = [
     path('', api_root, name='root'),
@@ -14,7 +16,7 @@ urlpatterns = [
     path('quiz/<int:pk>/', QuizDetail.as_view(), name='quiz'),
     path('questions/', QuizQuestions.as_view(), name='questions'),
     path('question/<int:pk>/', QuestionDetail.as_view(), name='question'),
-    path('random/<str:topic>/', RandomQuestion.as_view(), name='random'),
+    path('random/', RandomQuestion.as_view(), name='random'),
     path('answer/<int:pk>/', AnswerDetail.as_view(), name='answer'),
     path('add-answer/', AddAnswer.as_view(), name='add_answer'),
 ]
