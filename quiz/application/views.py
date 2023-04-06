@@ -95,6 +95,7 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class RandomQuestion(generics.ListAPIView):
+    """Получение случайного вопроса"""
     serializer_class = QuestionSerializer
 
     def get_queryset(self):
@@ -103,12 +104,21 @@ class RandomQuestion(generics.ListAPIView):
 
 
 class AnswerDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Чтение, обновление и удаление ответа на вопрос,
+    доступно только для автора
+    """
     serializer_class = SingleAnswerSerializer
-    queryset = Answers.objects.select_related('question').only('id', 'text', 'is_right', 'question__title').all()
+    queryset = Answers.objects.select_related('question').all()
     permission_classes = [IsAuthorOrReadOnly]
 
 
 class AddAnswer(generics.CreateAPIView):
+    """
+    Создание ответа на вопрос,
+    текущий пользователь автоматически определяется
+    в качестве автора
+    """
     serializer_class = SingleAnswerSerializer
 
 

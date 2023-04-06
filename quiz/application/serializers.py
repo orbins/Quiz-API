@@ -116,37 +116,37 @@ class QuestionSerializer(serializers.ModelSerializer):
             author = quiz.author
             if author != self.context['request'].user:
                 raise serializers.ValidationError({"quiz":
-                                                   "Вы не можете добавить вопрос в квиз, автором которого не являетесь!"})
+                                                   "Вы не можете добавить вопрос в квиз, "
+                                                   "автором которого не являетесь!"})
         return attrs
 
 
 class SingleAnswerSerializer(serializers.ModelSerializer):
-    question = serializers.CharField(source='question.title')
-    # Если values не используется то, атрибут вторичной модели указывается
-    # через точку, иначе, через двойное подчеркивание
-    # если в only передать с двойным подчеркиванием, то можно указать через точку также здесь
+    question = serializers.PrimaryKeyRelatedField(queryset=Questions.objects.all(),
+                                                  write_only=True)
+    question_title = serializers.StringRelatedField(source='question',
+                                                    read_only=True)
+    author = serializers.HiddenField(
+        default=serializers.CurrentUserDefault())
+    author_name = serializers.StringRelatedField(
+        source='author',
+        read_only=True)
 
     class Meta:
         model = Answers
-        fields = ('question', 'id', 'text', 'is_right')
+        fields = ('question', 'question_title',
+                  'id', 'text', 'is_right',
+                  'author', 'author_name')
 
-    def update(self, instance, validated_data):
-        question_name = validated_data['question']['title']
-        if Questions.objects.filter(title=question_name).exists():
-            validated_data['question'] = Questions.objects.get(title=question_name)
-            instance.question = validated_data.get('question', instance.question)
-            instance.text = validated_data.get('text', instance.text)
-            instance.is_right = validated_data.get('is_right', instance.is_right)
-            instance.save()
-            return instance
-        raise Http404
-
-    def create(self, validated_data):
-        question_name = validated_data['question']['title']
-        if Questions.objects.filter(title=question_name).exists():
-            validated_data['question'] = Questions.objects.get(title=question_name)
-            return Answers.objects.create(**validated_data)
-        raise Http404
+    def validate(self, attrs):
+        if attrs.get('question', None):
+            question = attrs['question']
+            author = question.author
+            if author != self.context['request'].user:
+                raise serializers.ValidationError({"question":
+                                                   "Вы не можете добавить ответ на вопрос, "
+                                                   "автором которого не являетесь!"})
+        return attrs
 
 
 class UserSerializer(serializers.ModelSerializer):

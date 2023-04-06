@@ -17,6 +17,6 @@ urlpatterns = [
     path('questions/', QuizQuestions.as_view(), name='questions'),
     path('question/<int:pk>/', QuestionDetail.as_view(), name='question'),
     path('random/', RandomQuestion.as_view(), name='random'),
-    path('answer/<int:pk>/', AnswerDetail.as_view(), name='answer'),
     path('add-answer/', AddAnswer.as_view(), name='add_answer'),
+    path('answer/<int:pk>/', AnswerDetail.as_view(), name='answer'),
 ]
