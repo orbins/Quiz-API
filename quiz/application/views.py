@@ -32,7 +32,7 @@ def api_root(request, format=None):
 
 class CategoryList(generics.ListCreateAPIView):
     """
-    Для просмотра списка всесуществующих категорий и
+    Для просмотра списка всех существующих категорий и
     создания новых с возможностью фильтрации по автору
     """
     queryset = Categories.objects.all()
@@ -55,10 +55,9 @@ class QuizList(generics.ListCreateAPIView):
     """
     Получение списка квизов
     """
-    # для оптимизации использую only и select_related
-    queryset = Quizzes.objects.select_related(
-        'category').only('id', 'title', 'category__name', 'author').all()
+    queryset = Quizzes.objects.select_related('category').all()
     serializer_class = QuizSerializer
+    filterset_fields = ('author', 'category')
 
 
 class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -66,9 +65,7 @@ class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
     Получение, обновление
     и удаление квиза
     """
-    queryset = Quizzes.objects.select_related(
-        'category').only('title', 'category__name',
-                         'date_created').all()
+    queryset = Quizzes.objects.select_related('category').all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthorOrReadOnly]
 
@@ -78,6 +75,7 @@ class QuizQuestions(generics.ListCreateAPIView):
     Получение списка вопросов и создание вопроса
     """
     serializer_class = QuestionSerializer
+    filterset_fields = ('quiz', 'author')
 
     def get_queryset(self):
         return Questions.objects.prefetch_related(
