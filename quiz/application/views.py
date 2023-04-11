@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
 from django.contrib.auth import get_user_model
+from django.http import Http404
 
 
 from .permissions import IsAuthorOrReadOnly
@@ -55,9 +56,15 @@ class QuizList(generics.ListCreateAPIView):
     """
     Получение списка квизов
     """
-    queryset = Quizzes.objects.select_related('category').all()
     serializer_class = QuizSerializer
     filterset_fields = ('author', 'category')
+
+    def get_queryset(self):
+        # С целью оптимизации нельзя получить все квизы
+        # Только с фильтрацией по автору или категории
+        if len(self.request.query_params) == 0:
+            return Quizzes.objects.none()
+        return Quizzes.objects.select_related('category').all()
 
 
 class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -78,6 +85,9 @@ class QuizQuestions(generics.ListCreateAPIView):
     filterset_fields = ('quiz', 'author')
 
     def get_queryset(self):
+        # Только с фильтрацией по автору или квизу
+        if len(self.request.query_params) == 0:
+            return Questions.objects.none()
         return Questions.objects.prefetch_related(
                     'answers').select_related(
                     'quiz').filter(is_active=True)
@@ -96,10 +106,13 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
 class RandomQuestion(generics.ListAPIView):
     """Получение случайного вопроса"""
     serializer_class = QuestionSerializer
+    lookup_field = 'quiz'
 
     def get_queryset(self):
+        quiz = self.kwargs.get('quiz')
+        # только по квизу
         return Questions.objects.prefetch_related('answers').select_related(
-                'quiz').filter(is_active=True).order_by('?')[:1]
+                'quiz').filter(is_active=True, quiz=quiz).order_by('?')[:1]
 
 
 class AnswerDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -112,13 +125,19 @@ class AnswerDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthorOrReadOnly]
 
 
-class AddAnswer(generics.CreateAPIView):
+class AnswerList(generics.ListCreateAPIView):
     """
     Создание ответа на вопрос,
     текущий пользователь автоматически определяется
     в качестве автора
     """
     serializer_class = SingleAnswerSerializer
+    filterset_fields = ('question', )
+
+    def get_queryset(self):
+        if len(self.request.query_params) == 0:
+            return Answers.objects.none()
+        return Answers.objects.select_related('question').all()
 
 
 class RegisterView(generics.CreateAPIView):
