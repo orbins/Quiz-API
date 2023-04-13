@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from rest_framework import generics
 from rest_framework.reverse import reverse
 from rest_framework.decorators import api_view
@@ -26,8 +27,12 @@ def api_root(request, format=None):
     списков квизов и их категорий
     """
     return Response({
-        'categories': reverse('categories', request=request, format=format),
-        'quizzes': reverse('quizzes', request=request, format=format),
+        'categories': reverse('categories',
+                              request=request,
+                              format=format),
+        'quizzes': reverse('quizzes',
+                           request=request,
+                           format=format),
     })
 
 
@@ -36,7 +41,10 @@ class CategoryList(generics.ListCreateAPIView):
     Для просмотра списка всех существующих категорий и
     создания новых с возможностью фильтрации по автору
     """
-    queryset = Categories.objects.all()
+    queryset = Categories.objects.select_related(
+        'author').only('id',
+                       'name',
+                       'author__username').all()
     serializer_class = CategorySerializer
     filterset_fields = ('author', )
 
@@ -47,7 +55,10 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     и удаления категорий доступно
     только их авторам
     """
-    queryset = Categories.objects.all()
+    queryset = Categories.objects.select_related(
+        'author').only('id',
+                       'name',
+                       'author__username').all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthorOrReadOnly]
 
@@ -60,11 +71,11 @@ class QuizList(generics.ListCreateAPIView):
     filterset_fields = ('author', 'category')
 
     def get_queryset(self):
-        # С целью оптимизации нельзя получить все квизы
-        # Только с фильтрацией по автору или категории
-        if len(self.request.query_params) == 0:
-            return Quizzes.objects.none()
-        return Quizzes.objects.select_related('category').all()
+        return Quizzes.objects.select_related(
+            'category', 'author').only('id',
+                                       'title',
+                                       'category__name',
+                                       'author__username').all()
 
 
 class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -72,7 +83,11 @@ class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
     Получение, обновление
     и удаление квиза
     """
-    queryset = Quizzes.objects.select_related('category').all()
+    queryset = Quizzes.objects.select_related(
+        'category', 'author').only('id',
+                                    'title',
+                                    'category__name',
+                                    'author__username').all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthorOrReadOnly]
 
@@ -82,15 +97,12 @@ class QuizQuestions(generics.ListCreateAPIView):
     Получение списка вопросов и создание вопроса
     """
     serializer_class = QuestionSerializer
-    filterset_fields = ('quiz', 'author')
+    filterset_fields = ('quiz', 'author', 'is_active')
 
     def get_queryset(self):
-        # Только с фильтрацией по автору или квизу
-        if len(self.request.query_params) == 0:
-            return Questions.objects.none()
         return Questions.objects.prefetch_related(
-                    'answers').select_related(
-                    'quiz').filter(is_active=True)
+                'answers').select_related(
+                'quiz', 'author').all()
 
 
 class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -99,20 +111,21 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
     доступно только для автора самого вопроса
     """
     serializer_class = QuestionSerializer
-    queryset = Questions.objects.prefetch_related('answers').select_related('quiz').all()
+    queryset = Questions.objects.prefetch_related(
+        'answers').select_related('quiz').all()
     permission_classes = [IsAuthorOrReadOnly]
 
 
 class RandomQuestion(generics.ListAPIView):
     """Получение случайного вопроса"""
     serializer_class = QuestionSerializer
-    lookup_field = 'quiz'
+    lookup_field = 'quiz_id'
 
     def get_queryset(self):
-        quiz = self.kwargs.get('quiz')
+        quiz_id = self.kwargs.get('quiz_id')
         # только по квизу
         return Questions.objects.prefetch_related('answers').select_related(
-                'quiz').filter(is_active=True, quiz=quiz).order_by('?')[:1]
+                'quiz').filter(is_active=True, quiz=quiz_id).order_by('?')[:1]
 
 
 class AnswerDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -121,23 +134,20 @@ class AnswerDetail(generics.RetrieveUpdateDestroyAPIView):
     доступно только для автора
     """
     serializer_class = SingleAnswerSerializer
-    queryset = Answers.objects.select_related('question').all()
+    queryset = Answers.objects.select_related(
+        'question').only('question__title', 'id',
+                         'text', 'is_right',
+                         'author__username').all()
     permission_classes = [IsAuthorOrReadOnly]
 
 
-class AnswerList(generics.ListCreateAPIView):
+class AddAnswer(generics.CreateAPIView):
     """
     Создание ответа на вопрос,
     текущий пользователь автоматически определяется
     в качестве автора
     """
     serializer_class = SingleAnswerSerializer
-    filterset_fields = ('question', )
-
-    def get_queryset(self):
-        if len(self.request.query_params) == 0:
-            return Answers.objects.none()
-        return Answers.objects.select_related('question').all()
 
 
 class RegisterView(generics.CreateAPIView):

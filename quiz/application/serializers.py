@@ -19,7 +19,7 @@ class CategorySerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
     author_name = serializers.StringRelatedField(
-        source='author',
+        source='author.username',
         read_only=True)
 
     class Meta:
@@ -51,7 +51,7 @@ class QuizSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
     author_name = serializers.StringRelatedField(
-        source='author',
+        source='author.username',
         read_only=True)
 
     class Meta:
@@ -96,12 +96,12 @@ class QuestionSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True, read_only=True)
     quiz = serializers.PrimaryKeyRelatedField(queryset=Quizzes.objects.all(),
                                               write_only=True)
-    quiz_title = serializers.StringRelatedField(source='quiz',
+    quiz_title = serializers.StringRelatedField(source='quiz.title',
                                                 read_only=True)
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
     author_name = serializers.StringRelatedField(
-        source='author',
+        source='author.username',
         read_only=True)
     is_active = serializers.BooleanField(default=True)
 
@@ -125,12 +125,12 @@ class QuestionSerializer(serializers.ModelSerializer):
 class SingleAnswerSerializer(serializers.ModelSerializer):
     question = serializers.PrimaryKeyRelatedField(queryset=Questions.objects.all(),
                                                   write_only=True)
-    question_title = serializers.StringRelatedField(source='question',
+    question_title = serializers.StringRelatedField(source='question.title',
                                                     read_only=True)
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
     author_name = serializers.StringRelatedField(
-        source='author',
+        source='author.username',
         read_only=True)
 
     class Meta:
