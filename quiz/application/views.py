@@ -1,14 +1,14 @@
-from django.db.models import Prefetch
 from rest_framework import generics
 from rest_framework.reverse import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
+from django_filters import rest_framework as filters
+
 from django.contrib.auth import get_user_model
-from django.http import Http404
 
-
+from .filters import CategoryFilter
 from .permissions import IsAuthorOrReadOnly
 from .models import Quizzes, Categories, Questions, Answers
 from .serializers import (QuizSerializer, QuestionSerializer,
@@ -33,6 +33,9 @@ def api_root(request, format=None):
         'quizzes': reverse('quizzes',
                            request=request,
                            format=format),
+        'questions': reverse('questions',
+                             request=request,
+                             format=format)
     })
 
 
@@ -46,7 +49,7 @@ class CategoryList(generics.ListCreateAPIView):
                        'name',
                        'author__username').all()
     serializer_class = CategorySerializer
-    filterset_fields = ('author', )
+    filterset_class = CategoryFilter
 
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
