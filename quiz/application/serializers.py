@@ -15,16 +15,10 @@ class CategorySerializer(serializers.ModelSerializer):
     Сериализатор для обработки
     CRUD операций с категориями
     """
-    # Автор - по умолчанию пользователь, который делает запрос
-    author = serializers.HiddenField(
-        default=serializers.CurrentUserDefault())
-    author_name = serializers.StringRelatedField(
-        source='author.username',
-        read_only=True)
 
     class Meta:
         model = Categories
-        fields = ('id', 'name', 'author', 'author_name')
+        fields = ('id', 'name')
 
     def validate(self, attrs):
         # Названия категорий не должны повторяться для пользователя
@@ -48,6 +42,7 @@ class QuizSerializer(serializers.ModelSerializer):
     # принимается и возвращается имя категории
     category = serializers.CharField(
         source='category.name')
+    # Автор - по умолчанию пользователь, который делает запрос
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
     author_name = serializers.StringRelatedField(

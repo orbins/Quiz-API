@@ -23,4 +23,4 @@ class CategoryFilter(filters.FilterSet):
 
     class Meta:
         model = Categories
-        fields = ('author',)
+        fields = ('name',)

@@ -44,10 +44,7 @@ class CategoryList(generics.ListCreateAPIView):
     Для просмотра списка всех существующих категорий и
     создания новых с возможностью фильтрации по автору
     """
-    queryset = Categories.objects.select_related(
-        'author').only('id',
-                       'name',
-                       'author__username').all()
+    queryset = Categories.objects.only('id', 'name').all()
     serializer_class = CategorySerializer
     filterset_class = CategoryFilter
 
@@ -58,12 +55,8 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     и удаления категорий доступно
     только их авторам
     """
-    queryset = Categories.objects.select_related(
-        'author').only('id',
-                       'name',
-                       'author__username').all()
+    queryset = Categories.objects.only('id', 'name').all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthorOrReadOnly]
 
 
 class QuizList(generics.ListCreateAPIView):

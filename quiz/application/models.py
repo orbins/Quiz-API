@@ -9,8 +9,6 @@ User = get_user_model()
 class Categories(models.Model):
     """Модель категорий квизов"""
     name = models.CharField(max_length=255)
-    author = models.ForeignKey(User,
-                               on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _("Category")
