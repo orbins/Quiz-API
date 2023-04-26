@@ -8,6 +8,8 @@ from django_filters import rest_framework as filters
 
 from django.contrib.auth import get_user_model
 
+from drf_yasg.utils import swagger_auto_schema
+
 from .filters import CategoryFilter
 from .permissions import IsAuthorOrReadOnly
 from .models import Quizzes, Categories, Questions, Answers
@@ -18,13 +20,13 @@ from .serializers import (QuizSerializer, QuestionSerializer,
 User = get_user_model()
 
 
+@swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
 # Переадресация на вход\регистрацию реализовывается на фронте
 def api_root(request, format=None):
     """
-    Контроллер для корневого url,
-    возвращает url'ы для просмотра
-    списков квизов и их категорий
+    Возвращает url'ы для просмотра
+    списков категорий, квизов и вопросов
     """
     return Response({
         'categories': reverse('categories',
@@ -47,6 +49,7 @@ class CategoryList(generics.ListCreateAPIView):
     queryset = Categories.objects.only('id', 'name').all()
     serializer_class = CategorySerializer
     filterset_class = CategoryFilter
+    http_method_names = ['post', 'get']
 
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -57,6 +60,7 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Categories.objects.only('id', 'name').all()
     serializer_class = CategorySerializer
+    http_method_names = ['patch', 'get', 'delete']
 
 
 class QuizList(generics.ListCreateAPIView):
@@ -65,6 +69,7 @@ class QuizList(generics.ListCreateAPIView):
     """
     serializer_class = QuizSerializer
     filterset_fields = ('author', 'category')
+    http_method_names = ['post', 'get']
 
     def get_queryset(self):
         return Quizzes.objects.select_related(
@@ -86,6 +91,7 @@ class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
                                     'author__username').all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthorOrReadOnly]
+    http_method_names = ['patch', 'get', 'delete']
 
 
 class QuizQuestions(generics.ListCreateAPIView):
@@ -94,6 +100,7 @@ class QuizQuestions(generics.ListCreateAPIView):
     """
     serializer_class = QuestionSerializer
     filterset_fields = ('quiz', 'author', 'is_active')
+    http_method_names = ['post', 'get']
 
     def get_queryset(self):
         return Questions.objects.prefetch_related(
@@ -110,12 +117,14 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Questions.objects.prefetch_related(
         'answers').select_related('quiz').all()
     permission_classes = [IsAuthorOrReadOnly]
+    http_method_names = ['patch', 'get', 'delete']
 
 
 class RandomQuestion(generics.ListAPIView):
     """Получение случайного вопроса"""
     serializer_class = QuestionSerializer
     lookup_field = 'quiz_id'
+    http_method_names = ['get']
 
     def get_queryset(self):
         quiz_id = self.kwargs.get('quiz_id')
@@ -135,6 +144,7 @@ class AnswerDetail(generics.RetrieveUpdateDestroyAPIView):
                          'text', 'is_right',
                          'author__username').all()
     permission_classes = [IsAuthorOrReadOnly]
+    http_method_names = ['patch', 'get', 'delete']
 
 
 class AddAnswer(generics.CreateAPIView):
@@ -144,6 +154,7 @@ class AddAnswer(generics.CreateAPIView):
     в качестве автора
     """
     serializer_class = SingleAnswerSerializer
+    http_method_names = ['post']
 
 
 class RegisterView(generics.CreateAPIView):
@@ -152,3 +163,4 @@ class RegisterView(generics.CreateAPIView):
     """
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+    http_method_names = ['post']

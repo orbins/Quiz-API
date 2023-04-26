@@ -8,11 +8,12 @@ User = get_user_model()
 
 class Categories(models.Model):
     """Модель категорий квизов"""
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,
+                            verbose_name="Имя")
 
     class Meta:
-        verbose_name = _("Category")
-        verbose_name_plural = _("Categories")
+        verbose_name = _("Категория")
+        verbose_name_plural = _("Категории")
 
     def __str__(self):
         return self.name
@@ -21,17 +22,20 @@ class Categories(models.Model):
 class Quizzes(models.Model):
     """Модель квизов"""
     title = models.CharField(max_length=255, default=_("New Quiz"),
-                             verbose_name=_("Quiz title"))
+                             verbose_name=_("Имя"))
     category = models.ForeignKey(Categories, default=1,
-                                 on_delete=models.CASCADE)
+                                 on_delete=models.CASCADE,
+                                 verbose_name="Категория квиза")
     # 1 квиз относится к 1 категории
-    date_created = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateTimeField(auto_now_add=True,
+                                        verbose_name="Дата создания")
     author = models.ForeignKey(User,
-                               on_delete=models.CASCADE)
+                               on_delete=models.CASCADE,
+                               verbose_name="Автор квиза")
 
     class Meta:
-        verbose_name = _("Quiz")
-        verbose_name_plural = _("Quizzes")
+        verbose_name = _("Квиз")
+        verbose_name_plural = _("Квизы")
         ordering = ['id']
 
     def __str__(self):
@@ -43,7 +47,7 @@ class Updated(models.Model):
     # общие свойства в несколько моделей
     # для добавления свойства отслеживания обновлений
     date_updated = models.DateTimeField(
-        verbose_name=_("Last updated"), auto_now=True
+        verbose_name=_("Дата последнего изменения"), auto_now=True
     )
 
     class Meta:
@@ -70,22 +74,25 @@ class Questions(Updated):
 
     # 1 вопрос может относиться к 1 квизу
     quiz = models.ForeignKey(Quizzes, related_name='questions',
-                             on_delete=models.CASCADE)
-    title = models.CharField(max_length=500)
+                             on_delete=models.CASCADE,
+                             verbose_name="Квиз")
+    title = models.CharField(max_length=500,
+                             verbose_name="Текс")
     kind = models.IntegerField(choices=STYLE, default=0,
-                               verbose_name=_("Type of question"))
+                               verbose_name=_("Тип"))
     difficulty = models.IntegerField(choices=SCALE, default=0,
-                                     verbose_name=_("Difficulty"))
+                                     verbose_name=_("Сложность"))
     date_created = models.DateTimeField(auto_now_add=True,
-                                        verbose_name=_("Date Created"))
+                                        verbose_name=_("Дата создания"))
     is_active = models.BooleanField(default=True,
-                                    verbose_name=_("Active Status"))
+                                    verbose_name=_("Статус"))
     author = models.ForeignKey(User,
-                               on_delete=models.CASCADE,)
+                               on_delete=models.CASCADE,
+                               verbose_name="Автор")
 
     class Meta:
-        verbose_name = _("Question")
-        verbose_name_plural = _("Questions")
+        verbose_name = _("Вопрос")
+        verbose_name_plural = _("Вопросы")
         ordering = ['id']
 
     def __str__(self):
@@ -97,16 +104,19 @@ class Answers(Updated):
 
     # 1 ответ относится только к 1 вопросу
     question = models.ForeignKey(Questions, related_name='answers',
-                                 on_delete=models.CASCADE)
+                                 on_delete=models.CASCADE,
+                                 verbose_name="Вопрос")
     text = models.TextField(max_length=500,
-                            verbose_name=_("Answer Text"))
-    is_right = models.BooleanField(default=False)
+                            verbose_name=_("Текст"))
+    is_right = models.BooleanField(default=False,
+                                   verbose_name="Правильный?")
     author = models.ForeignKey(User,
-                               on_delete=models.CASCADE)
+                               on_delete=models.CASCADE,
+                               verbose_name="Автор")
 
     class Meta:
-        verbose_name = _("Answer")
-        verbose_name_plural = _("Answers")
+        verbose_name = _("Ответ")
+        verbose_name_plural = _("Ответы")
         ordering = ['id']
 
     def __str__(self):
