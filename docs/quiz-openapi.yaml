@@ -252,7 +252,7 @@ paths:
         type: integer
   /login/:
     post:
-      operationId: login_create
+      operationId: Создание токена
       description: |-
         Takes a set of user credentials and returns an access and refresh JSON web
         token pair to prove the authentication of those credentials.
@@ -267,6 +267,7 @@ paths:
           description: ''
           schema:
             $ref: '#/definitions/TokenObtainPair'
+      summary: ''
       tags:
         - login
     parameters: []
@@ -595,12 +596,11 @@ paths:
     parameters: []
   /register/:
     post:
-      operationId: register_create
-      description: Контроллер для регистрации пользователей
+      operationId: ''
+      description: 'Создание пользователя. Эндпоинт доступен для всех пользователей. Доступен только метод POST. В случае успешного создания возвращается код 201 и JSON с основными атрибутами пользователя и его id. Эндпоинт не авторизует пользователя, а только создает его. '
       parameters:
-        - name: data
-          in: body
-          required: true
+        - in: body
+          name: body
           schema:
             $ref: '#/definitions/User'
       responses:
@@ -608,8 +608,17 @@ paths:
           description: ''
           schema:
             $ref: '#/definitions/User'
+          headers:
+            header-0:
+              type: string
+        '400':
+          description: ''
+          schema:
+            type: object
+          headers: {}
       tags:
         - register
+      summary: Создание пользователя
     parameters: []
 definitions:
   SingleAnswer:
