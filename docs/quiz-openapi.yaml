@@ -25,16 +25,37 @@ paths:
         - in: body
           name: body
           schema:
-            $ref: '#/definitions/User'
-          description: ''
+            type: object
+            properties:
+              email:
+                type: string
+              username:
+                type: string
+              password:
+                type: string
+              password2:
+                type: string
+              first_name:
+                type: string
+              last_name:
+                type: string
+            x-examples:
+              Example 1:
+                email: examole@example.com
+                username: user1234
+                password: secretpa$$word
+                password2: secretpa$$word
+                first_name: 'Oleg '
+                last_name: Ivanov
           x-examples:
-            Request:
+            '':
               email: examole@example.com
               username: user1234
               password: secretpa$$word
               password2: secretpa$$word
               first_name: 'Oleg '
               last_name: Ivanov
+          description: ''
       responses:
         '201':
           description: ''
@@ -43,24 +64,20 @@ paths:
             properties:
               email:
                 type: string
-                x-stoplight:
-                  id: 8ye8mp4u23p6k
-                format: email
               username:
                 type: string
-                x-stoplight:
-                  id: 0kr8q8h4b4zhq
               first_name:
                 type: string
-                x-stoplight:
-                  id: arv9cf91yhdcw
               last_name:
                 type: string
-                x-stoplight:
-                  id: sh0gkb4e0zk1g
-          headers: {}
+            x-examples:
+              Example 1:
+                email: examole@example.com
+                username: user1234
+                first_name: 'Oleg '
+                last_name: Ivanov
           examples:
-            Success Response:
+            Success:
               email: examole@example.com
               username: user1234
               first_name: 'Oleg '
@@ -69,17 +86,20 @@ paths:
           description: ''
           schema:
             type: object
+            x-examples:
+              Example 1:
+                field_name:
+                  - Обязательное поле.
             properties:
               field_name:
                 type: array
-                x-stoplight:
-                  id: lldpbla9atp5p
-                items: {}
-          headers: {}
+                items:
+                  type: string
           examples:
-            Response:
+            Bad Request:
               field_name:
                 - Обязательное поле.
+          headers: {}
       tags:
         - register
       summary: Создание пользователя
@@ -808,4 +828,6 @@ definitions:
       - password2
       - first_name
       - last_name
+    title: ''
+    description: ''
 responses: {}
