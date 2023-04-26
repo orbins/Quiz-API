@@ -8,7 +8,8 @@ info:
 
     Tkachenko Danil: orwellj@mail.ru
   version: v1
-schemes: []
+schemes:
+  - http
 basePath: /
 consumes: []
 produces: []
@@ -16,108 +17,80 @@ securityDefinitions: {}
 security:
   - Basic: []
 paths:
-  /:
-    get:
-      operationId: _list
-      description: |-
-        Контроллер для корневого url,
-        возвращает url'ы для просмотра
-        списков квизов и их категорий
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - ''
-    parameters: []
-  /answer/:
+  /register/:
     post:
-      operationId: answer_create
-      description: |-
-        Создание ответа на вопрос,
-        текущий пользователь автоматически определяется
-        в качестве автора
+      operationId: register_post
+      description: 'Создание пользователя. Эндпоинт доступен для всех пользователей. Доступен только метод POST. В случае успешного создания возвращается код 201 и JSON с основными атрибутами пользователя и его id. Эндпоинт не авторизует пользователя, а только создает его. '
       parameters:
-        - name: data
-          in: body
-          required: true
+        - in: body
+          name: body
           schema:
-            $ref: '#/definitions/SingleAnswer'
+            $ref: '#/definitions/User'
+          description: ''
+          x-examples:
+            '':
+              email: user@example.com
+              username: string
+              password: string
+              password2: string
+              first_name: string
+              last_name: string
       responses:
         '201':
           description: ''
           schema:
-            $ref: '#/definitions/SingleAnswer'
+            $ref: '#/definitions/User'
+          headers: {}
+        '400':
+          description: ''
+          schema:
+            type: object
+          headers: {}
       tags:
-        - answer
+        - register
+      summary: Создание пользователя
     parameters: []
-  '/answer/{id}/':
-    get:
-      operationId: answer_read
+  /login/:
+    post:
+      operationId: login_post
       description: |-
-        Чтение, обновление и удаление ответа на вопрос,
-        доступно только для автора
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/SingleAnswer'
-      tags:
-        - answer
-    put:
-      operationId: answer_update
-      description: |-
-        Чтение, обновление и удаление ответа на вопрос,
-        доступно только для автора
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/SingleAnswer'
+            $ref: '#/definitions/TokenObtainPair'
       responses:
-        '200':
+        '201':
           description: ''
           schema:
-            $ref: '#/definitions/SingleAnswer'
+            $ref: '#/definitions/TokenObtainPair'
+      summary: ''
       tags:
-        - answer
-    patch:
-      operationId: answer_partial_update
+        - login
+    parameters: []
+  /refresh/:
+    post:
+      operationId: refresh_create
       description: |-
-        Чтение, обновление и удаление ответа на вопрос,
-        доступно только для автора
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/SingleAnswer'
+            $ref: '#/definitions/TokenRefresh'
       responses:
-        '200':
+        '201':
           description: ''
           schema:
-            $ref: '#/definitions/SingleAnswer'
+            $ref: '#/definitions/TokenRefresh'
       tags:
-        - answer
-    delete:
-      operationId: answer_delete
-      description: |-
-        Чтение, обновление и удаление ответа на вопрос,
-        доступно только для автора
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - answer
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this Answer.
-        required: true
-        type: integer
+        - refresh
+    parameters: []
   /categories/:
     get:
       operationId: categories_list
@@ -194,25 +167,6 @@ paths:
             $ref: '#/definitions/Category'
       tags:
         - category
-    put:
-      operationId: category_update
-      description: |-
-        Для обновления, получения
-        и удаления категорий доступно
-        только их авторам
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Category'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Category'
-      tags:
-        - category
     patch:
       operationId: category_partial_update
       description: |-
@@ -250,92 +204,115 @@ paths:
         description: A unique integer value identifying this Category.
         required: true
         type: integer
-  /login/:
+  /quizzes/:
+    get:
+      operationId: quizzes_list
+      description: Получение списка квизов
+      parameters:
+        - name: author
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: category
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/Quiz'
+      tags:
+        - quizzes
     post:
-      operationId: Создание токена
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+      operationId: quizzes_create
+      description: Получение списка квизов
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/TokenObtainPair'
+            $ref: '#/definitions/Quiz'
       responses:
         '201':
           description: ''
           schema:
-            $ref: '#/definitions/TokenObtainPair'
-      summary: ''
+            $ref: '#/definitions/Quiz'
       tags:
-        - login
+        - quizzes
     parameters: []
-  '/question/{id}/':
+  '/quiz/{id}/':
     get:
-      operationId: question_read
+      operationId: quiz_read
       description: |-
-        Обновление, удаление, чтение конкретного вопроса,
-        доступно только для автора самого вопроса
+        Получение, обновление
+        и удаление квиза
       parameters: []
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/Question'
+            $ref: '#/definitions/Quiz'
       tags:
-        - question
-    put:
-      operationId: question_update
-      description: |-
-        Обновление, удаление, чтение конкретного вопроса,
-        доступно только для автора самого вопроса
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Question'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Question'
-      tags:
-        - question
+        - quiz
     patch:
-      operationId: question_partial_update
+      operationId: quiz_partial_update
       description: |-
-        Обновление, удаление, чтение конкретного вопроса,
-        доступно только для автора самого вопроса
+        Получение, обновление
+        и удаление квиза
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/Question'
+            $ref: '#/definitions/Quiz'
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/Question'
+            $ref: '#/definitions/Quiz'
       tags:
-        - question
+        - quiz
     delete:
-      operationId: question_delete
+      operationId: quiz_delete
       description: |-
-        Обновление, удаление, чтение конкретного вопроса,
-        доступно только для автора самого вопроса
+        Получение, обновление
+        и удаление квиза
       parameters: []
       responses:
         '204':
           description: ''
       tags:
-        - question
+        - quiz
     parameters:
       - name: id
         in: path
-        description: A unique integer value identifying this Question.
+        description: A unique integer value identifying this Quiz.
         required: true
         type: integer
   /questions/:
@@ -405,135 +382,55 @@ paths:
       tags:
         - questions
     parameters: []
-  '/quiz/{id}/':
+  '/question/{id}/':
     get:
-      operationId: quiz_read
+      operationId: question_read
       description: |-
-        Получение, обновление
-        и удаление квиза
+        Обновление, удаление, чтение конкретного вопроса,
+        доступно только для автора самого вопроса
       parameters: []
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/Quiz'
+            $ref: '#/definitions/Question'
       tags:
-        - quiz
-    put:
-      operationId: quiz_update
-      description: |-
-        Получение, обновление
-        и удаление квиза
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Quiz'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Quiz'
-      tags:
-        - quiz
+        - question
     patch:
-      operationId: quiz_partial_update
+      operationId: question_partial_update
       description: |-
-        Получение, обновление
-        и удаление квиза
+        Обновление, удаление, чтение конкретного вопроса,
+        доступно только для автора самого вопроса
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/Quiz'
+            $ref: '#/definitions/Question'
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/Quiz'
+            $ref: '#/definitions/Question'
       tags:
-        - quiz
+        - question
     delete:
-      operationId: quiz_delete
+      operationId: question_delete
       description: |-
-        Получение, обновление
-        и удаление квиза
+        Обновление, удаление, чтение конкретного вопроса,
+        доступно только для автора самого вопроса
       parameters: []
       responses:
         '204':
           description: ''
       tags:
-        - quiz
+        - question
     parameters:
       - name: id
         in: path
-        description: A unique integer value identifying this Quiz.
+        description: A unique integer value identifying this Question.
         required: true
         type: integer
-  /quizzes/:
-    get:
-      operationId: quizzes_list
-      description: Получение списка квизов
-      parameters:
-        - name: author
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: category
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Quiz'
-      tags:
-        - quizzes
-    post:
-      operationId: quizzes_create
-      description: Получение списка квизов
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Quiz'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/Quiz'
-      tags:
-        - quizzes
-    parameters: []
   '/random/{quiz_id}/':
     get:
       operationId: random_read
@@ -574,51 +471,75 @@ paths:
         in: path
         required: true
         type: string
-  /refresh/:
-    post:
-      operationId: refresh_create
+  '/answer/{id}/':
+    get:
+      operationId: answer_read
       description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+        Чтение, обновление и удаление ответа на вопрос,
+        доступно только для автора
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SingleAnswer'
+      tags:
+        - answer
+    patch:
+      operationId: answer_partial_update
+      description: |-
+        Чтение, обновление и удаление ответа на вопрос,
+        доступно только для автора
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/TokenRefresh'
+            $ref: '#/definitions/SingleAnswer'
       responses:
-        '201':
+        '200':
           description: ''
           schema:
-            $ref: '#/definitions/TokenRefresh'
+            $ref: '#/definitions/SingleAnswer'
       tags:
-        - refresh
-    parameters: []
-  /register/:
+        - answer
+    delete:
+      operationId: answer_delete
+      description: |-
+        Чтение, обновление и удаление ответа на вопрос,
+        доступно только для автора
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - answer
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this Answer.
+        required: true
+        type: integer
+  /answer/:
     post:
-      operationId: ''
-      description: 'Создание пользователя. Эндпоинт доступен для всех пользователей. Доступен только метод POST. В случае успешного создания возвращается код 201 и JSON с основными атрибутами пользователя и его id. Эндпоинт не авторизует пользователя, а только создает его. '
+      operationId: answer_create
+      description: |-
+        Создание ответа на вопрос,
+        текущий пользователь автоматически определяется
+        в качестве автора
       parameters:
-        - in: body
-          name: body
+        - name: data
+          in: body
+          required: true
           schema:
-            $ref: '#/definitions/User'
+            $ref: '#/definitions/SingleAnswer'
       responses:
         '201':
           description: ''
           schema:
-            $ref: '#/definitions/User'
-          headers:
-            header-0:
-              type: string
-        '400':
-          description: ''
-          schema:
-            type: object
-          headers: {}
+            $ref: '#/definitions/SingleAnswer'
       tags:
-        - register
-      summary: Создание пользователя
+        - answer
     parameters: []
 definitions:
   SingleAnswer:
@@ -796,12 +717,9 @@ definitions:
     x-stoplight:
       id: uhjwxwrttbsf9
   User:
-    required:
-      - email
-      - username
-      - password
-      - password2
     type: object
+    x-stoplight:
+      id: n7rxpt7pwzjr2
     properties:
       email:
         title: Email
@@ -831,5 +749,20 @@ definitions:
         title: Last name
         type: string
         maxLength: 150
-    x-stoplight:
-      id: n7rxpt7pwzjr2
+    required:
+      - email
+      - username
+      - password
+      - password2
+      - first_name
+      - last_name
+    x-examples:
+      '':
+        email: user@example.com
+        username: User1234
+        password: secretpassword123
+        password2: secretpassword123
+        first_name: Oleg
+        last_name: Ivanov
+    title: ''
+responses: {}
