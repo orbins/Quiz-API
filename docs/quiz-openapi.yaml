@@ -28,24 +28,58 @@ paths:
             $ref: '#/definitions/User'
           description: ''
           x-examples:
-            '':
-              email: user@example.com
-              username: string
-              password: string
-              password2: string
-              first_name: string
-              last_name: string
+            Request:
+              email: examole@example.com
+              username: user1234
+              password: secretpa$$word
+              password2: secretpa$$word
+              first_name: 'Oleg '
+              last_name: Ivanov
       responses:
         '201':
           description: ''
           schema:
-            $ref: '#/definitions/User'
+            type: object
+            properties:
+              email:
+                type: string
+                x-stoplight:
+                  id: 8ye8mp4u23p6k
+                format: email
+              username:
+                type: string
+                x-stoplight:
+                  id: 0kr8q8h4b4zhq
+              first_name:
+                type: string
+                x-stoplight:
+                  id: arv9cf91yhdcw
+              last_name:
+                type: string
+                x-stoplight:
+                  id: sh0gkb4e0zk1g
           headers: {}
+          examples:
+            Success Response:
+              email: examole@example.com
+              username: user1234
+              first_name: 'Oleg '
+              last_name: Ivanov
         '400':
           description: ''
           schema:
             type: object
+            properties:
+              field_name:
+                type: array
+                x-stoplight:
+                  id: lldpbla9atp5p
+                items: {}
           headers: {}
+          examples:
+            Response:
+              field_name:
+                - Обязательное поле.
       tags:
         - register
       summary: Создание пользователя
@@ -720,42 +754,6 @@ definitions:
     type: object
     x-stoplight:
       id: n7rxpt7pwzjr2
-    properties:
-      email:
-        title: Email
-        type: string
-        format: email
-        minLength: 1
-      username:
-        title: Username
-        description: 'Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
-        type: string
-        pattern: '^[\w.@+-]+$'
-        maxLength: 150
-        minLength: 1
-      password:
-        title: Password
-        type: string
-        minLength: 1
-      password2:
-        title: Password2
-        type: string
-        minLength: 1
-      first_name:
-        title: First name
-        type: string
-        maxLength: 150
-      last_name:
-        title: Last name
-        type: string
-        maxLength: 150
-    required:
-      - email
-      - username
-      - password
-      - password2
-      - first_name
-      - last_name
     x-examples:
       '':
         email: user@example.com
@@ -764,5 +762,50 @@ definitions:
         password2: secretpassword123
         first_name: Oleg
         last_name: Ivanov
-    title: ''
+    properties:
+      email:
+        title: Email
+        type: string
+        format: email
+        minLength: 1
+        default: examole@example.com
+      username:
+        title: Username
+        description: 'Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
+        type: string
+        pattern: '^[\w.@+-]+$'
+        maxLength: 150
+        minLength: 1
+        example: user1234
+      password:
+        title: Password
+        type: string
+        minLength: 6
+        format: password
+        maxLength: 128
+        example: secretpa$$word
+      password2:
+        title: Password2
+        type: string
+        minLength: 6
+        format: password
+        maxLength: 128
+        example: secretpa$$word
+      first_name:
+        title: First name
+        type: string
+        maxLength: 150
+        example: 'Oleg '
+      last_name:
+        title: Last name
+        type: string
+        maxLength: 150
+        example: Ivanov
+    required:
+      - email
+      - username
+      - password
+      - password2
+      - first_name
+      - last_name
 responses: {}
