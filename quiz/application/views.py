@@ -29,13 +29,13 @@ def api_root(request, format=None):
     списков категорий, квизов и вопросов
     """
     return Response({
-        'categories': reverse('categories',
+        'categories': reverse('application:categories',
                               request=request,
                               format=format),
-        'quizzes': reverse('quizzes',
+        'quizzes': reverse('application:quizzes',
                            request=request,
                            format=format),
-        'questions': reverse('questions',
+        'questions': reverse('application:questions',
                              request=request,
                              format=format)
     })

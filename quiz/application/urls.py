@@ -5,6 +5,8 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 from .views import *
 
 
+app_name = 'application'
+
 urlpatterns = [
     path('', api_root, name='root'),
     path('register/', RegisterView.as_view(), name='register'),

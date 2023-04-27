@@ -1,5 +1,4 @@
-from django.conf import settings
-from django.urls import path, include, re_path
+from django.urls import path, include
 from django.contrib import admin
 
 from rest_framework import permissions
@@ -24,7 +23,7 @@ urlpatterns = [
         schema_view.with_ui('redoc', cache_timeout=0),
         name='schema-redoc'
         ),
-    path('', include('application.urls')),
+    path('', include('application.urls', namespace='application')),
     path(
         'swagger/',
         schema_view.with_ui('swagger', cache_timeout=0),
