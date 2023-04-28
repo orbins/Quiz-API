@@ -3,17 +3,23 @@ x-stoplight:
   id: lykio0me2n135
 info:
   title: QuizApp API
-  description: |-
-    QuizApp REST API
-
-    Tkachenko Danil: orwellj@mail.ru
+  description: QuizApp REST API
   version: v1
+  contact:
+    name: Tkachenko Danil
+    email: orwellj@mail.ru
 schemes:
   - http
 basePath: /
-consumes: []
-produces: []
-securityDefinitions: {}
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  'JWT [Bearer {JWT}]':
+    name: Authorization
+    type: apiKey
+    in: query
 security:
   - Basic: []
 paths:
@@ -831,3 +837,4 @@ definitions:
     title: ''
     description: ''
 responses: {}
+host: '127.0.0.1:8000'

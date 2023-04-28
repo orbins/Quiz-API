@@ -1,0 +1,1633 @@
+swagger: '2.0'
+x-stoplight:
+  id: knjua3snlfxpd
+info:
+  title: AntalyaDom API
+  description: AntalyaDom REST API
+  version: v1
+  contact:
+    name: Roman Petrakov
+    email: development@telfia.com
+schemes:
+  - http
+basePath: /
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  'JWT [Bearer {JWT}]':
+    type: apiKey
+    name: Authorization
+    in: header
+    description: ''
+security:
+  - 'JWT [Bearer {JWT}]': []
+paths:
+  /api/auth/jwt/create/:
+    post:
+      operationId: Получить токен авторизации
+      description: |-
+        <p>
+        <a href="https://jwt.io/introduction">Токены JWT</a> - единственный способ авторизации пользователей на нашем проекте. Для получения токена в запросе нужно передать email пользователя и password в открытом виде. В случае, если пользователь с такой парой email/password существует, сервер создаст пару токенов refresh и access и отправит их в ответном JSON.
+
+        Любой запрос к серверу, требующий авторизацию и аутентификацию следует отправлять с авторизационным токеном:<br>
+        <pre>Authorization: Bearer ACCESS_TOKEN</pre>
+        </p>
+        <p>
+        Вот общий воркфлоу для аутентификации пользователей в бэкэнде Django/DRF с использованием JWT с токенами <code>access</code> и <code>refresh</code>:
+        <ul>
+        <li>Пользователь вводит свои учетные данные для входа (имя пользователя/адрес электронной почты и пароль) в форму входа в интерфейсе.</li>
+        <li>Внешний интерфейс (фронтэнд) отправляет запрос POST к эндпоинту API, отвечающему за обработку аутентификации пользователя.</li>
+        <li>В бэкэнде Django/DRF контроллер аутентификации проверяет учетные данные пользователя. Если учетные данные действительны, серверная часть создает access-токен JWT и refresh-токен и возвращает их фронтэнду в ответе.</li>
+        <li>Во внешнем интерфейсе действие входа получает ответ и извлекает токены доступа и обновления JWT. Затем токены сохраняются в локальном хранилище или в файле cookie для будущего использования.</li>
+        <li>Для всех последующих запросов API, сделанных внешним интерфейсом, access-токен JWT включается в заголовок авторизации запроса: <code>Authorization: Bearer ACCESS_TOKEN</code></li>
+        <li>В бэкэнде Django/DRF класс аутентификации JWT используется для проверки токена доступа JWT и извлечения из него информации о пользователе.</li>
+        <li>Если токен доступа действителен, запрос обрабатывается так, как если бы пользователь прошел проверку подлинности. Если токен доступа недействителен, серверная часть возвращает ответ об ошибке, указывающий, что пользователь не прошел проверку подлинности.</li>
+        <li>Если срок действия access-токена истек, внешний интерфейс может использовать refresh-токен  для получения нового access-токена, отправив запрос к <code>/api/auth/jwt/refresh/</code> бэкэнда Django/DRF. Эндпоинт проверяет refresh-токен и выдает в ответ новый access и refresh токены.</li>
+        <li>Внешний интерфейс получает новые токены и сохраняет их в локальном хранилище или файле cookie для будущего использования.</li>
+        <li>Затем внешний интерфейс повторяет исходный запрос API с новым access-токеном.</li>
+        </ul>
+        </p>
+        <p>
+        Это обычная практика для внешнего интерфейса, чтобы контролировать возраст access-токена.
+        Внешний интерфейс должен проверять время истечения срока действия access-токена перед
+        выполнением запроса API. Если срок действия токена истек, внешний интерфейс
+        может использовать refresh-токен для получения нового access-токена, как описано выше.
+        </p>
+        <p>
+        Время истечения срока действия токена JWT хранится в полезной нагрузке токена.
+        Эта информация представляется в виде временной метки Unix и указывается с помощью ключа «exp» (срок действия).
+        Вот пример токена JWT со сроком действия:
+        <pre>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+        eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyNDI2MjJ9.
+        SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        </pre>
+        В этом примере время истечения срока действия <code>1516242622</code> включено во вторую
+        часть токена JWT, которая является полезной нагрузкой.
+        Полезная нагрузка — это объект JSON, закодированный как строка Base64, и он содержит ключи,
+        определяющие свойства токена, включая время истечения срока действия.
+        </p>
+        <p>
+        Чтобы получить доступ к сроку действия токена JWT, интерфейсу необходимо декодировать токен
+        и проанализировать полезную нагрузку.
+        Вот пример того, как декодировать токен JWT с помощью библиотеки jsonwebtoken в Node.js:
+        <pre>
+        const jwt = require('jsonwebtoken');
+
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyNDI2MjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+        const decoded = jwt.decode(token);
+
+        const expiration = decoded.exp;
+        </pre>
+        </p>
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TokenObtainPair'
+          description: ''
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/Token'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          description: 'Ошибка авторизации (неправильный емейл и/или пароль, забаненный пользователь).'
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                default: No active account found with the given credentials
+      tags:
+        - Токены
+      security: []
+      summary: Создание токена
+    parameters: []
+  /api/auth/jwt/refresh/:
+    post:
+      operationId: Обновить токен
+      description: 'Берет refresh JWT-токен и возвращает access JWT-токен, в случае, если refresh токен верный.'
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TokenRefresh'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TokenRefresh'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/InvalidToken'
+      tags:
+        - Токены
+      summary: Обновление токена
+      security: []
+    parameters: []
+  /api/auth/jwt/verify/:
+    post:
+      operationId: Проверить токен
+      description: 'Берет token и возвращает код 200, если токен действительный.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            $ref: '#/definitions/TokenVerify'
+      summary: Проверка токена
+      tags:
+        - Токены
+      responses:
+        '200':
+          description: Удачное выполнение запроса
+          schema:
+            $ref: '#/definitions/TokenVerify'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/InvalidToken'
+      security: []
+    parameters: []
+  /api/objects/categories/:
+    get:
+      operationId: Список категорий
+      description: 'Возвращает список категорий объекта. Эндпоинт доступен всем пользователям. В нашем проекте их изначально два - <b>аренда</b> и <b>покупка</b>, но этот список может быть расширен через панель администратора.'
+      parameters: []
+      tags:
+        - Категории
+      security: []
+      summary: Получение списка категорий
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Category'
+    parameters: []
+  '/api/objects/categories/{id}/':
+    get:
+      operationId: Получение категории
+      description: 'Возвращает имя категории недвижимости по ее id. Эндпоинт доступен всем пользователям. '
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Category'
+        '404':
+          $ref: '#/responses/NotFound'
+      security: []
+      tags:
+        - Категории
+      summary: Получение категории
+    parameters:
+      - type: integer
+        name: id
+        in: path
+        description: Уникальный идентификатор категории
+        required: true
+  /api/objects/facilities/:
+    get:
+      operationId: facilities_list
+      description: 'Возвращает список всех доступных удобств. Эндпоинт доступен всем пользователям. '
+      parameters: []
+      security: []
+      tags:
+        - Удобства
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Facility'
+      summary: Получение списка удобств
+    parameters: []
+  '/api/objects/facilities/{id}/':
+    get:
+      operationId: facilities_read
+      description: 'Возвращает определенное удобство по уникальному идентификатору удобства. Эндпоинт доступен всем пользователям. '
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Facility'
+        '404':
+          $ref: '#/responses/NotFound'
+      tags:
+        - Удобства
+      security: []
+      summary: Получение удобства
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+        description: Уникальный идентификатор удобства
+  /api/objects/locations/:
+    get:
+      operationId: locations_list
+      description: 'Возвращает список локаций. Эндпоинт доступен всем пользователям. '
+      parameters: []
+      tags:
+        - Локации
+      security: []
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Location'
+      summary: Получение списка локаций
+    parameters: []
+  '/api/objects/locations/{id}/':
+    get:
+      operationId: locations_read
+      description: Возвращает имя локации по уникальному идентификатору локации (id). Эндпоинт доступен всем пользователям.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Location'
+        '404':
+          $ref: '#/responses/NotFound'
+      tags:
+        - Локации
+      security: []
+      summary: Получение локации
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+  /api/objects/property_types/:
+    get:
+      operationId: types_list
+      description: 'Возвращает список типов недвижимости (квартира, участок, дом и т.д.)'
+      parameters: []
+      security: []
+      tags:
+        - Типы недвижимости
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PropertyType'
+      summary: Получение списка типов
+    parameters: []
+  '/api/objects/property_types/{id}/':
+    get:
+      operationId: Тип недвижимости
+      description: 'Возвращает имя конкретного типа недвижимости, заданного уникальным идентификатором. Эндпоинт доступен всем пользователям.'
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/PropertyType'
+        '404':
+          $ref: '#/responses/NotFound'
+      security: []
+      tags:
+        - Типы недвижимости
+      summary: Получение типа
+    parameters:
+      - type: integer
+        name: id
+        in: path
+        required: true
+        description: Уникальный идентификатор типа недвижимости
+  /api/objects/:
+    get:
+      operationId: Каталог недвижимости
+      description: |-
+        <p>Список объектов недвижимости с пагинацией. Эндпоинт доступен всем пользователям. Доступна фильтрация по <b>избранному</b>, <b>локации</b>, <b>категории</b>, <b>типу</b>, <b>количеству комнат</b>.</p>
+        <p>В случае, если пользователь не авторизован, то в ответном JSON is_favorited всегда для всех объектов будет возвращаться <code>false</code>. Если пользователь авторизован, то is_favorited будет возвращать <code>true</code> для объектов, которые пользователь добавил в избранное.</p>
+        <p>В случае, если в request-запросе передан параметр is_favorited=1, эндпоинт возвращает только объекты, добавленные текущим пользователем в избранное.</p>
+      parameters:
+        - type: string
+          in: query
+          name: page
+          description: Номер страницы.
+          required: true
+        - type: string
+          in: query
+          name: limit
+          description: Количество объектов на странице.
+          required: true
+        - type: integer
+          in: query
+          name: is_favorited
+          enum:
+            - 0
+            - 1
+          description: 'Показывать только объекты, находящиеся в списке избранного.'
+        - type: integer
+          in: query
+          name: location
+          description: Показывать объекты только из локации с указанным id.
+        - type: integer
+          in: query
+          name: category
+          description: Показывать объекты только из категории с указанным id.
+        - type: integer
+          in: query
+          name: rooms
+          description: 'Показывать объекты только с указанным количеством комнат. Если 4, то показывать все объекты с >= 4 комнат.'
+        - type: integer
+          in: query
+          name: property_type
+          description: Тип недвижимости
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+                description: Общее количество объектов
+              next:
+                type: string
+                format: uri
+                description: Ссылка на следующую страницу
+              previous:
+                type: string
+                format: uri
+                description: Ссылка на предыдущую страницу
+              results:
+                $ref: '#/definitions/RealEstate'
+      tags:
+        - Объект недвижимости
+      security: []
+      summary: Список объектов
+    parameters: []
+  '/api/objects/{id}/':
+    get:
+      operationId: objects_read
+      description: |-
+        <p>Возвращает объект недвижимости по уникальному идентификатору объекта. Эндпоинт доступен всем пользователям.</p>
+        <p>В случае, если пользователь не авторизован, то в ответном JSON is_favorited будет содержать <code>false</code>. Если пользователь авторизован и добавил данный объект в избранное, то is_favorited будет содержать <code>true</code>.</p>
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/RealEstate'
+        '404':
+          $ref: '#/responses/NotFound'
+      security: []
+      tags:
+        - Объект недвижимости
+      summary: Получение объекта
+    parameters:
+      - name: id
+        in: path
+        description: Уникальный идентификатор объекта.
+        required: true
+        type: integer
+  /api/objects/order/:
+    post:
+      operationId: Заявка общая
+      description: 'Общая заявка, не привзянная к конкретному объекту недвижимости. Эндпоинт доступен для всех пользователей. Возвращает статус-код 201, если заявка была успешно создана.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            $ref: '#/definitions/OrderCreate'
+      responses:
+        '201':
+          description: Заявка успешно отправлена
+        '400':
+          $ref: '#/responses/ValidationError'
+      tags:
+        - Заявка
+      security: []
+      summary: Заявка общая
+    parameters: []
+  '/api/objects/{id}/order/':
+    post:
+      operationId: order_create
+      description: 'Заявка, привзянная к конкретному объекту недвижимости. Эндпоинт доступен для всех пользователей. Возвращает статус-код 201, если заявка была успешно создана. В параметре запроса содержит уникальный идентификатор объекта недвижимости.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            $ref: '#/definitions/OrderObjectCreate'
+      responses:
+        '201':
+          description: Заявка успешно отправлена
+        '400':
+          $ref: '#/responses/ValidationError'
+        '404':
+          $ref: '#/responses/NotFound'
+      tags:
+        - Заявка
+      security: []
+      summary: Заявка на конкретный объект
+    parameters:
+      - type: integer
+        name: id
+        in: path
+        description: Уникальный идентификатор объекта недвижимости
+        required: true
+  '/api/objects/{id}/favorite/':
+    parameters:
+      - type: integer
+        name: id
+        in: path
+        required: true
+        description: Уникальный идентификатор объекта недвижимости
+    post:
+      summary: Добавить объект в избранное
+      operationId: post-api-objects-id-favorite
+      tags:
+        - Избранное
+      description: Добавляет объект в избранное для текущего пользователя. Доступно только авторизованным пользователям.
+      responses:
+        '201':
+          description: Объект успешно добавлен в избранное.
+        '400':
+          description: 'Ошибка добавления в избранное (например, когда уже есть в избранном у данного пользователя).'
+          schema:
+            type: object
+            properties:
+              errors:
+                type: string
+                description: Описание ошибки
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '404':
+          $ref: '#/responses/NotFound'
+    delete:
+      summary: Удалить объекта из избранного
+      operationId: delete-api-objects-id-favorite
+      responses:
+        '204':
+          description: Объект успешно удален из избранного.
+        '400':
+          description: 'Ошибка удаления из избранного (например, когда объекта там и не было).'
+          schema:
+            type: object
+            properties:
+              errors:
+                type: string
+                description: Описание ошибки
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      description: Удаляет объект из избранного текущего пользователя. Доступно только авторизованным пользователям.
+      tags:
+        - Избранное
+  /api/static_pages/:
+    get:
+      operationId: Список статических страниц
+      description: Получение списка статических страниц. Эндпоинт доступен для всех пользователей.
+      parameters: []
+      security: []
+      tags:
+        - Статические страницы
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/StaticPagesList'
+      summary: Получение списка статических страниц
+    parameters: []
+  '/api/static_pages/{id}/':
+    get:
+      operationId: Получение статической страницы
+      description: Получение статической страницы по уникальному идентификатору. Эндпоинт доступен для всех пользователей. Параметр content в ответном JSON содержит HTML страницу.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/StaticPages'
+        '404':
+          $ref: '#/responses/NotFound'
+      tags:
+        - Статические страницы
+      security: []
+      summary: Получение статической страницы
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+  /api/static_pages/team/:
+    get:
+      operationId: team_list
+      description: Получение списка участников команды. Эндпоинт доступен для всех пользователей.
+      parameters: []
+      security: []
+      tags:
+        - Статические страницы
+        - Команда
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Team'
+      summary: Получение списка участников команды
+    parameters: []
+  '/api/static_pages/team/{id}/':
+    get:
+      operationId: team_read
+      description: Получение участника команды по его уникальному идентификатору. Эндпоинт доступен для всех пользователей.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Team'
+        '404':
+          $ref: '#/responses/NotFound'
+      security: []
+      tags:
+        - Статические страницы
+        - Команда
+      summary: Участник команды
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+        description: Уникальный идентификатор участника команды.
+  /api/users/:
+    post:
+      operationId: Создание пользователя
+      description: 'Создание пользователя. Эндпоинт доступен для всех пользователей. Доступен только метод POST. В случае успешного создания возвращается код 201 и JSON с основными атрибутами пользователя и его id. Эндпоинт не авторизует пользователя, а только создает его. Для авторизации см. раздел <b>Токены</b>'
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CustomUserCreate'
+          description: ''
+      responses:
+        '201':
+          schema:
+            $ref: '#/definitions/CustomUserResponseOnCreate'
+          description: ''
+        '400':
+          $ref: '#/responses/ValidationError'
+      security: []
+      tags:
+        - Пользователи
+      summary: Создание пользователя
+    parameters: []
+  /api/users/logout/:
+    post:
+      summary: Логаут
+      operationId: Логаут пользователя
+      responses:
+        '204':
+          description: В случае успешного внесения токена в черный список происходит успешное разлогирование пользователя.
+        '400':
+          description: 'Возвращается, если не удалось проверить Refresh-токен или разлогинить пользователя по другой причине.'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      description: |-
+        <p>Эндпоинт для разлогирования текущего пользователя. Доступен только авторизованным пользователям (должен быть передан хедер <code>Authorization: Bearer access_token</code>).</p>
+        <p>Для разлогирования в теле запроса должен быть передан <code>refresh_token</code> и оба токена (access и refresh) удалены с клиента.</p> Рефреш токен в случае успеха заносится в черный список, таким образом никто не сможет получить Access-токен, а сам Access-токен удалится сам по таймауту.</p>
+      parameters:
+        - in: body
+          name: body
+          schema:
+            $ref: '#/definitions/TokenRefresh'
+      tags:
+        - Пользователи
+    parameters: []
+  /api/users/me/:
+    get:
+      operationId: Текущий пользователь
+      description: Текущий пользователь. Эндпоинт доступен только для авторизованных пользователей. Возвращает атрибуты текущего авторизованного пользователя.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/CustomUserResponseOnCreate'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      tags:
+        - Пользователи
+      summary: Текущий пользователь
+    put:
+      operationId: Обновление пользователя
+      description: 'Текущий пользователь. Эндпоинт доступен только для авторизованных пользователей. Позволяет изменять имя, фамилию и телефон текущего авторизованного пользователя. В случае успешного обновления данных возвращает статус-код 200.'
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CustomUserUpdate'
+          description: ''
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      tags:
+        - Пользователи
+    patch:
+      operationId: Частичное обновление пользователя
+      description: 'Текущий пользователь. Эндпоинт доступен только для авторизованных пользователей. Позволяет изменять имя, фамилию и телефон текущего авторизованного пользователя. В случае успешного обновления данных возвращает статус-код 200.'
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CustomUserUpdate'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      tags:
+        - Пользователи
+    parameters: []
+  /api/users/set_password/:
+    post:
+      operationId: users_set_password
+      description: Смена пароля. Эндпоинт доступен для авторизованного пользователя. В случае успешной смены пароля возвращает статус-код 200.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SetPasswordRetype'
+      tags:
+        - Пользователи
+      responses:
+        '200':
+          description: OK
+        '204':
+          description: Успешная смена пароля.
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      summary: Изменение пароля
+    parameters: []
+  /api/users/reset_password/:
+    post:
+      summary: Сброс пароля
+      operationId: api_users_reset_password
+      security: []
+      tags:
+        - Пользователи
+      description: ''
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                format: email
+                description: E-mail пользователя
+      responses:
+        '204':
+          description: Успешное создание запроса на сброс пароля
+        '400':
+          description: |-
+            <p>Ошибка в воде email:
+            <code>{"email": ["Введите правильный адрес электронной почты."]}</code>
+            </p>
+            <p>E-mail не найден:
+            <code>["Пользователь с данным адресом электронной почты не существует."]</code>
+            </p>
+          schema:
+            type: object
+            properties: {}
+  /api/users/reset_password_confirm/:
+    post:
+      summary: Подтверждение сброса пароля
+      operationId: api_users_reset_password_confirm
+      responses:
+        '204':
+          description: Пароль успешно изменен
+        '400':
+          $ref: '#/responses/ValidationError'
+      security: []
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              uid:
+                type: string
+                description: 'Уникальный идентификатор, полученный из ссылки'
+              token:
+                type: string
+                description: Токен из ссылки
+              new_password:
+                type: string
+                description: Новый пароль
+                format: password
+              re_new_password:
+                type: string
+                description: Повтор нового пароля
+                format: password
+          description: ''
+      description: ''
+      tags:
+        - Пользователи
+  '/api/users/{id}/':
+    get:
+      operationId: Профиль пользователя
+      description: |-
+        <p><b>В текущей реализации фактически копия эндпоинта /api/users/me/</b></p>
+        <p>Текущий пользователь. Эндпоинт доступен только для авторизованных пользователей. Возвращает атрибуты текущего авторизованного пользователя.</p>
+      parameters:
+        - type: integer
+          in: path
+          required: true
+          name: id
+          description: Уникальный идентификатор пользователя.
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/CustomUserResponseOnCreate'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      tags:
+        - Пользователи
+      summary: Профиль пользователя
+    put:
+      operationId: update_user
+      description: |-
+        <p><b>В текущей реализации фактически копия эндпоинта /api/users/me/</b></p>
+        <p>Текущий пользователь. Эндпоинт доступен только для авторизованных пользователей. Позволяет изменять имя, фамилию и телефон текущего авторизованного пользователя. В случае успешного обновления данных возвращает статус-код 200.</p>
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CustomUserUpdate'
+          description: ''
+        - type: integer
+          in: path
+          required: true
+          name: id
+          description: Уникальный идентификатор пользователя.
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      tags:
+        - Пользователи
+    patch:
+      operationId: partly_update_user
+      description: |-
+        <p><b>В текущей реализации фактически копия эндпоинта /api/users/me/</b></p>
+        <p>Текущий пользователь. Эндпоинт доступен только для авторизованных пользователей. Позволяет изменять имя, фамилию и телефон текущего авторизованного пользователя. В случае успешного обновления данных возвращает статус-код 200.</p>
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CustomUserUpdate'
+        - type: integer
+          in: path
+          required: true
+          name: id
+          description: Уникальный идентификатор пользователя.
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+      tags:
+        - Пользователи
+    parameters: []
+definitions:
+  TokenObtainPair:
+    type: object
+    properties:
+      email:
+        title: Username
+        type: string
+        minLength: 1
+        format: email
+        maxLength: 50
+        description: Электронная почта
+      password:
+        title: Password
+        type: string
+        maxLength: 128
+        format: password
+        description: Пароль
+    required:
+      - email
+      - password
+    x-stoplight:
+      id: fmsfm9w6h8ran
+  TokenRefresh:
+    required:
+      - refresh
+    type: object
+    properties:
+      refresh:
+        title: Refresh
+        type: string
+        minLength: 1
+      access:
+        title: Access
+        type: string
+        readOnly: true
+    x-stoplight:
+      id: bcpdol7edsghb
+  TokenRefresh2:
+    title: TokenRefresh2
+    x-stoplight:
+      id: crr6ssri9istj
+    type: object
+    properties:
+      access:
+        type: string
+        description: Токен
+  TokenVerify:
+    required:
+      - token
+    type: object
+    properties:
+      token:
+        title: Token
+        type: string
+        minLength: 1
+    x-stoplight:
+      id: 9zvpdaf1ev8uk
+  Token:
+    title: Token
+    x-stoplight:
+      id: 7t5mdsvmlxt31
+    type: object
+    properties:
+      refresh:
+        type: string
+      access:
+        type: string
+  Category:
+    type: object
+    properties:
+      id:
+        title: Уникальный идентификатор категории объекта
+        type: integer
+      name:
+        type: string
+        enum:
+          - Аренда
+          - Покупка
+    description: Модель категорий
+    x-stoplight:
+      id: yqi9kogjq3n71
+  Facility:
+    type: object
+    description: Модель Удобств
+    properties:
+      id:
+        type: integer
+        description: Уникальный идентификатор удобства
+        example: 1
+        readOnly: true
+      name:
+        title: Название
+        type: string
+        maxLength: 100
+        minLength: 1
+        description: Название удобства
+        example: Кондиционер
+      icon:
+        title: Иконка
+        type: string
+        format: slug
+        pattern: '^[-a-zA-Z0-9_.-]+$'
+        maxLength: 100
+        minLength: 1
+        description: Имя иконки
+        example: air-conditioner-32x32.svg
+    required:
+      - name
+      - icon
+    x-stoplight:
+      id: 8q3nyr53ytmbk
+  Location:
+    type: object
+    description: Модель локаций
+    properties:
+      id:
+        type: integer
+        description: Уникальный идентификатор локации
+        example: 1
+        readOnly: true
+      name:
+        title: Название
+        type: string
+        maxLength: 100
+        minLength: 1
+        example: Анталия
+        description: Имя локации
+      slug:
+        title: Слаг
+        type: string
+        format: slug
+        pattern: '^[-a-zA-Z0-9_]+$'
+        maxLength: 100
+        minLength: 1
+        example: antalya
+        description: Слаг
+    required:
+      - name
+      - slug
+    x-stoplight:
+      id: 9f8xbp41z2ohv
+  Image:
+    type: object
+    description: 'Модель изображений объекта. Поле `image_thumbnails` содержит массив уменьшенных и кропнутых изображений в разных разрешениях, которые используются на сайте.'
+    properties:
+      id:
+        title: ID
+        type: integer
+        description: Уникальный идентификатор изображения
+        example: 1
+        readOnly: true
+      image:
+        title: Фото
+        type: string
+        format: uri
+        description: URL изображения
+        example: 'http://example.org/images/1.jpg'
+        readOnly: true
+      image_thumbnails:
+        type: object
+        description: 'массив уменьшенных и кропнутых изображений в разных разрешениях, которые используются на сайте'
+        x-nullable: true
+        properties:
+          738x632:
+            type: string
+            format: uri
+            example: 'http://example.org/images/1_738x632.jpg'
+            description: URL уменьшенного изображения
+            readOnly: true
+          328x261:
+            type: string
+            format: uri
+            example: 'http://example.org/images/1_328x261.jpg'
+            description: URL уменьшенного изображения
+            readOnly: true
+        readOnly: true
+    x-stoplight:
+      id: zcof3wwuumlyx
+  RealEstate:
+    type: object
+    description: Модель объекта
+    properties:
+      id:
+        type: integer
+        description: Уникальный идентификатор объекта недвижимости
+        readOnly: true
+      title:
+        title: Название
+        type: string
+        maxLength: 200
+        minLength: 1
+        description: Название
+      price:
+        title: Цена
+        type: integer
+        description: Цена
+        example: 1000000
+      currency:
+        title: Валюта
+        type: string
+        enum:
+          - ₺
+          - $
+          - €
+          - ₽
+        description: Валюта
+      period:
+        title: Период
+        type: string
+        enum:
+          - День
+          - Месяц
+          - Год
+        description: Период аренды
+      location:
+        title: Локация
+        type: integer
+        example: 1
+        description: Уникальный идентификатор локации
+      category:
+        title: Категория
+        description: Категория недвижимости
+        type: integer
+        example: 1
+      property_type:
+        title: Тип недвижимости
+        description: Тип недвижимости
+        example: 1
+        type: integer
+      rooms:
+        title: Количество комнат
+        type: integer
+        description: Количество комнат
+      area:
+        title: Площадь
+        type: integer
+        description: 'Площадь, м2'
+      floor:
+        title: Этаж
+        type: integer
+        description: Этаж
+      total_floors:
+        title: Этажность
+        type: integer
+        description: Этажность (всего этажей)
+      construction_year:
+        title: Год постройки
+        type: integer
+        description: Год постройки
+        minimum: 1900
+      status:
+        title: Статус
+        type: string
+        enum:
+          - Новостройка
+          - Вторичное
+        description: Статус
+      description:
+        title: Описание
+        type: string
+        minLength: 1
+        description: Подробное описание
+      facilities:
+        type: array
+        items:
+          $ref: '#/definitions/Facility'
+        readOnly: true
+      images:
+        type: array
+        items:
+          $ref: '#/definitions/Image'
+        readOnly: true
+      is_favorited:
+        title: Is favorited
+        type: boolean
+        default: false
+        description: Добавлен ли объект в избранное у текущего пользователя
+        readOnly: true
+    required:
+      - title
+      - price
+      - rooms
+      - area
+      - floor
+      - total_floors
+      - construction_year
+      - description
+    x-stoplight:
+      id: xup0ytar2jhh9
+  PropertyType:
+    type: object
+    description: Модель типа объекта
+    properties:
+      id:
+        type: integer
+        description: Уникальный идентификатор типа
+      name:
+        title: Название
+        type: string
+        maxLength: 50
+        minLength: 1
+        description: Название типа объекта недвижимости
+        example: Квартира
+    required:
+      - name
+    x-stoplight:
+      id: y2qdyzi2rmiax
+  User:
+    type: object
+    description: Модель пользователя
+    properties:
+      id:
+        title: ID
+        type: integer
+        description: Уникальный идентификатор
+        readOnly: true
+      email:
+        title: Электронная почта
+        type: string
+        format: email
+        maxLength: 50
+        minLength: 1
+        description: Адрес электронной почты
+      first_name:
+        title: Имя
+        type: string
+        maxLength: 30
+        minLength: 2
+        description: Имя
+        example: Василий
+      last_name:
+        title: Фамилия
+        type: string
+        maxLength: 30
+        minLength: 2
+        description: Фамилия
+        example: Пупкин
+      phone:
+        type: string
+        pattern: '^\+?[0-9]{10,13}$'
+        description: Номер телефона
+        example: '+71234567890'
+      agreement:
+        type: boolean
+        default: true
+        description: Согласие с пользовательским соглашением
+    required:
+      - email
+      - first_name
+      - last_name
+      - phone
+      - agreement
+    x-stoplight:
+      id: fkixdzplc2eh8
+  CustomUserCreate:
+    type: object
+    properties:
+      id:
+        type: integer
+        readOnly: true
+      email:
+        type: string
+        format: email
+        maxLength: 50
+        description: Адрес электронной почты
+        example: vpupkin@yandex.ru
+      first_name:
+        type: string
+        maxLength: 30
+        description: Имя
+        example: Вася
+        minLength: 2
+      last_name:
+        type: string
+        maxLength: 30
+        description: Фамилия
+        example: Пупкин
+        minLength: 2
+      password:
+        type: string
+        maxLength: 128
+        description: Пароль
+        format: password
+      re_password:
+        type: string
+        maxLength: 128
+        format: password
+        description: Повтор пароля
+      phone:
+        type: string
+        example: '+71234567890'
+        pattern: '^\+?[0-9]{10,13}$'
+        description: |
+          Телефон
+      agreement:
+        type: boolean
+        default: true
+        description: Подтверждение согласия с пользовательским соглашением
+    required:
+      - email
+      - first_name
+      - last_name
+      - password
+      - re_password
+      - phone
+      - agreement
+    x-stoplight:
+      id: 0rf4b444jwr54
+  CustomUserResponseOnCreate:
+    type: object
+    properties:
+      id:
+        type: integer
+        readOnly: true
+      email:
+        type: string
+        format: email
+        maxLength: 50
+        description: Адрес электронной почты
+        example: vpupkin@yandex.ru
+      first_name:
+        type: string
+        maxLength: 30
+        description: Имя
+        example: Вася
+        minLength: 2
+      last_name:
+        type: string
+        maxLength: 30
+        description: Фамилия
+        example: Пупкин
+        minLength: 2
+      phone:
+        type: string
+        pattern: '^\+?[0-9]{10,13}$'
+        example: '+79876543210'
+        description: Телефон
+    x-stoplight:
+      id: p6d4a0uxnf6ud
+  CustomUserUpdate:
+    title: CustomUserUpdate
+    x-stoplight:
+      id: da7kglx5j8hqr
+    type: object
+    properties:
+      id:
+        type: integer
+        description: Уникальный идентификатор пользователя
+        readOnly: true
+      first_name:
+        type: string
+        description: Имя
+        example: Василий
+      last_name:
+        type: string
+        description: Фамилия
+        example: Пупкин
+      phone:
+        type: string
+        example: '+79876543210'
+        pattern: '^\+?[0-9]{10,13}$'
+        description: Телефон
+  UserCreatePasswordRetype:
+    type: object
+    description: Проверка пароля при создании юзера
+    properties:
+      id:
+        title: ID
+        type: integer
+        description: Уникальный идентификатор пользователя
+        readOnly: true
+      email:
+        title: Электронная почта
+        type: string
+        format: email
+        maxLength: 200
+        minLength: 1
+        description: Электронная почта
+      password:
+        title: Password
+        type: string
+        maxLength: 128
+        description: Пароль
+      re_password:
+        title: Re password
+        type: string
+        maxLength: 128
+        description: Повторный пароль
+    required:
+      - email
+      - password
+      - re_password
+    x-stoplight:
+      id: zb5bhcogcd1py
+  SetPasswordRetype:
+    type: object
+    description: Прорверка пароля при сбросе
+    properties:
+      new_password:
+        title: New password
+        type: string
+        maxLength: 128
+        description: Новый пароль
+      re_new_password:
+        title: Re new password
+        type: string
+        maxLength: 128
+        description: Повторный новый пароль
+      current_password:
+        title: Current password
+        type: string
+        maxLength: 128
+        description: Текущий пароль
+    required:
+      - new_password
+      - re_new_password
+      - current_password
+    x-stoplight:
+      id: s7ph5i2j1dufx
+  AuthenticationError:
+    description: Пользователь не авторизован
+    type: object
+    properties:
+      detail:
+        description: Описание ошибки
+        example: Учетные данные не были предоставлены.
+        type: string
+    x-stoplight:
+      id: eutks7oxr7zep
+  PermissionDenied:
+    description: Недостаточно прав
+    type: object
+    properties:
+      detail:
+        description: Описание ошибки
+        example: У вас недостаточно прав для выполнения данного действия.
+        type: string
+    x-stoplight:
+      id: 220xw9ldh4ugo
+  NotFound:
+    description: Объект не найден
+    type: object
+    properties:
+      detail:
+        description: Описание ошибки
+        example: Страница не найдена.
+        type: string
+    x-stoplight:
+      id: adeidwu5hs91b
+  ValidationError:
+    description: Стандартные ошибки валидации DRF
+    type: object
+    properties:
+      field_name:
+        description: 'Название поля, в котором произошли ошибки. Таких полей может быть несколько'
+        example:
+          - Обязательное поле.
+        type: array
+        items:
+          type: string
+    x-stoplight:
+      id: mclggk8wk3s80
+  OrderCreate:
+    title: OrderCreate
+    x-stoplight:
+      id: q2apsniz84jn8
+    type: object
+    properties:
+      first_name:
+        type: string
+        description: Имя
+        maxLength: 30
+        minLength: 2
+      last_name:
+        type: string
+        description: Фамилия
+        maxLength: 30
+        minLength: 2
+      phone:
+        type: string
+        description: Телефон
+        pattern: '^\+?[0-9]{10,13}$'
+        example: '+79876543210'
+      email:
+        type: string
+        description: Емейл
+        format: email
+        maxLength: 50
+      category:
+        type: integer
+        example: 1
+        description: Уникальный идентификатор категории недвижимости.
+      location:
+        type: array
+        example:
+          - 1
+        description: 'Уникальный идентификатор локации. `Cписок` из уникальных идентификаторов через запятую. Допускается также пустое значение `[]`'
+        items:
+          type: integer
+          x-nullable: true
+      property_type:
+        description: 'Уникальный идентификатор типа недвижимости. `Cписок` из уникальных идентификаторов через запятую. Допускается также пустое значение `[]`'
+        type: array
+        example:
+          - 1
+          - 2
+          - 3
+        items:
+          type: integer
+          x-nullable: true
+      rooms:
+        type: array
+        description: 'Количество комнат. `Cписок` из чисел через запятую. Допускается также пустое значение `[]`'
+        example:
+          - 1
+          - 2
+          - 3
+        items:
+          type: integer
+          x-nullable: true
+      comment:
+        type: string
+        description: Комментарии
+      agreement:
+        type: boolean
+        description: Соглашение
+        default: true
+    required:
+      - first_name
+      - last_name
+      - phone
+      - email
+      - agreement
+  OrderObjectCreate:
+    title: OrderObjectCreate
+    type: object
+    x-stoplight:
+      id: irlelzh3gba4x
+    properties:
+      first_name:
+        type: string
+        description: Имя
+        maxLength: 30
+        minLength: 2
+      last_name:
+        type: string
+        description: Фамилия
+        maxLength: 30
+        minLength: 2
+      phone:
+        type: string
+        description: Телефон
+        pattern: '^\+?[0-9]{10,13}$'
+        example: '+79876543210'
+      email:
+        type: string
+        description: Емейл
+        format: email
+        maxLength: 50
+      comment:
+        type: string
+        description: Комментарии
+      agreement:
+        type: boolean
+        description: Соглашение
+        default: true
+    required:
+      - first_name
+      - last_name
+      - phone
+      - email
+      - agreement
+  InvalidToken:
+    title: InvalidToken
+    x-stoplight:
+      id: l3oydheqv91xt
+    type: object
+    properties:
+      detail:
+        type: string
+        example: Token is invalid or expired
+      code:
+        type: string
+        example: token_not_valid
+  StaticPagesList:
+    title: StaticPagesList
+    x-stoplight:
+      id: saqjecbsgunw3
+    type: object
+    description: Список статических страниц сайта
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+        description: Название страницы
+        example: 'Привет, мир!'
+      slug:
+        type: string
+        description: Слаг
+        example: hello_world
+        format: slug
+        pattern: '^[-a-zA-Z0-9_]+$'
+  StaticPages:
+    title: StaticPages
+    x-stoplight:
+      id: 2jg7kpqt3sspn
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+        example: 'Привет, Мир!'
+      slug:
+        type: string
+        description: Слаг
+        format: slug
+        pattern: '^[-a-zA-Z0-9_]+$'
+        example: hello_world
+      content:
+        type: string
+        description: Контент страницы в html
+        example: <p>содержимое страницы</p>
+  Team:
+    title: TeamMembers
+    x-stoplight:
+      id: xy40sslexn7wj
+    type: object
+    properties:
+      id:
+        type: integer
+        description: Уникальный идентификатор участника команды
+      first_name:
+        type: string
+        description: Имя
+        example: Иван
+      last_name:
+        type: string
+        description: Фамилия
+        example: Смирнов
+      phone:
+        type: string
+        description: Телефон
+        example: '+79876543210'
+      position:
+        type: string
+        description: Должность
+        example: Менеджер
+      photo:
+        type: string
+        description: Фото
+        format: uri
+    description: Список участников команды
+responses:
+  ValidationError:
+    description: Ошибки валидации в стандартном формате DRF
+    schema:
+      $ref: '#/definitions/ValidationError'
+  AuthenticationError:
+    description: Пользователь не авторизован
+    schema:
+      $ref: '#/definitions/AuthenticationError'
+  PermissionDenied:
+    description: Недостаточно прав
+    schema:
+      $ref: '#/definitions/PermissionDenied'
+  NotFound:
+    description: Объект не найден
+    schema:
+      $ref: '#/definitions/NotFound'
+  InvalidToken:
+    description: Передан невалидный токен
+    schema:
+      $ref: '#/definitions/InvalidToken'
+host: antalyadom.telfia.com
+parameters:
+  Pagination:
+    name: Page
+    in: query
+    required: false
+    type: string
+    description: Текущая страница.
+  Limit:
+    name: Limit
+    in: query
+    required: false
+    type: string
+    description: Количество элементов на страницу.
