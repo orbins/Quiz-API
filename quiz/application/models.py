@@ -25,13 +25,13 @@ class Quizzes(models.Model):
                              verbose_name=_("Имя"))
     category = models.ForeignKey(Categories, default=1,
                                  on_delete=models.CASCADE,
-                                 verbose_name="Категория квиза")
+                                 verbose_name="Категория")
     # 1 квиз относится к 1 категории
     date_created = models.DateTimeField(auto_now_add=True,
                                         verbose_name="Дата создания")
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
-                               verbose_name="Автор квиза")
+                               verbose_name="Автор")
 
     class Meta:
         verbose_name = _("Квиз")

@@ -8,8 +8,6 @@ from django_filters import rest_framework as filters
 
 from django.contrib.auth import get_user_model
 
-from drf_yasg.utils import swagger_auto_schema
-
 from .filters import CategoryFilter
 from .permissions import IsAuthorOrReadOnly
 from .models import Quizzes, Categories, Questions, Answers
@@ -20,7 +18,6 @@ from .serializers import (QuizSerializer, QuestionSerializer,
 User = get_user_model()
 
 
-@swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
 # Переадресация на вход\регистрацию реализовывается на фронте
 def api_root(request, format=None):
@@ -86,9 +83,9 @@ class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Quizzes.objects.select_related(
         'category', 'author').only('id',
-                                    'title',
-                                    'category__name',
-                                    'author__username').all()
+                                   'title',
+                                   'category__name',
+                                'author__username').all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthorOrReadOnly]
     http_method_names = ['patch', 'get', 'delete']
