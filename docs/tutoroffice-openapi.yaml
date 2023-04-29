@@ -23,23 +23,60 @@ securityDefinitions:
 security:
   - Basic: []
 paths:
-  '/auth/user-activate/{token}/':
-    get:
-      operationId: auth_user-activate_read
-      description: |-
-        Подтверждение верификации и
-        перенаправление на профиль
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - auth
+  'activate/{token}/':
     parameters:
       - name: token
         in: path
         required: true
         type: string
+    post:
+      summary: ''
+      operationId: Активация пользователя
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              refresh:
+                type: string
+                x-stoplight:
+                  id: 771sweuqslzhr
+              access:
+                type: string
+                x-stoplight:
+                  id: mtcj1k0md0vk0
+              role:
+                type: string
+                x-stoplight:
+                  id: iej8zjee2j5zq
+          examples:
+            Активация для ученика:
+              refresh: string
+              access: string
+              role: student
+            Активация для учителя:
+              refresh: string
+              access: string
+              role: teacher
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                x-stoplight:
+                  id: yu79fknsnv6l8
+                example: Ссылка недействительна
+          examples:
+            '':
+              detail: Ссылка недействительна
+      description: |-
+        Верификация почты. Эндпоинт принимает только метод POST, доступен для всех пользователей.
+        Если у токена истечёт срок годности (1 день) или он является невалидным (попытка подмены), или же если пользователь захочет повторно воспользоваться ссылкой с этим же токеном, вернётся ошибка.
+        В случае успеха возвращаются access и refresh-токены, чтобы авторизовать и перенаправить профиль пользователя и тип пользователя, который необходим для fronted-приложения. Подробнее о токенах см. раздел <b>Токены</b>
+      parameters: []
   '/confirm/{token}':
     get:
       operationId: confirm_read
@@ -219,13 +256,13 @@ paths:
     parameters: []
   /register/:
     post:
-      operationId: ''
+      operationId: Регистрация пользователя
       description: |-
         Создание пользователя и отправка сообщения для верификации почты.
         Эндпоинт доступен для всех пользователей. Доступен только метод POST. 
         В случае успешного создания пользователю на почту отправляется письмо с вложенной ссылкой для подтверждения почты и в ответе возвращается предупреждение о том, что ему необходимо перейти на почту для подтверждения.
-        Эндпоинт не авторизует пользователя, а только создает его и отправляет письмо для подтверждения. Для авторизации см. раздел <b>Токены</b>
-        Если пользователь ввёл несуществующую почту, пользователь будет зарегистрирован, но письмо отправлено не будет.
+        Эндпоинт не авторизует пользователя, а только создает его и отправляет письмо для подтверждения.
+        Если пользователь ввёл несуществующую почту, пользователь будет создан, но письмо отправлено не будет.
       parameters:
         - name: data
           in: body
@@ -265,6 +302,7 @@ paths:
                 x-stoplight:
                   id: nsvyeqhmay9fv
                 example: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
+                description: Сообщение об успешной регистрации
           examples:
             Успешная регистрация:
               success: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
@@ -279,6 +317,7 @@ paths:
             properties:
               field_name:
                 type: array
+                description: 'Поле, в котором возникла ошибка валидации'
                 items:
                   type: string
                   example: Обязательное поле.
