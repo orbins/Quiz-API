@@ -1,0 +1,1003 @@
+swagger: '2.0'
+x-stoplight:
+  id: 1bhmz1omi0ski
+info:
+  title: TutorOffice API
+  version: v1
+  contact:
+    name: Tkachenko Danil
+    email: orwellj@mail.ru
+host: '127.0.0.1:8000'
+schemes:
+  - http
+basePath: /
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  'JWT [Bearer {JWT}]':
+    name: Authorization
+    type: apiKey
+    in: header
+security:
+  - Basic: []
+paths:
+  '/auth/user-activate/{token}/':
+    get:
+      operationId: auth_user-activate_read
+      description: |-
+        Подтверждение верификации и
+        перенаправление на профиль
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - auth
+    parameters:
+      - name: token
+        in: path
+        required: true
+        type: string
+  '/confirm/{token}':
+    get:
+      operationId: confirm_read
+      description: Подтверждение учеником привязки к репетитору
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - confirm
+    parameters:
+      - name: token
+        in: path
+        required: true
+        type: string
+  /login/:
+    post:
+      operationId: login_create
+      description: |-
+        Вход, если почта не подтверждена,
+        будет отправлено сообщение с подтверждением
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TokenObtainPair'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/TokenObtainPair'
+      tags:
+        - login
+    parameters: []
+  /materials/:
+    get:
+      operationId: materials_list
+      description: ViewSet для эндпойнта /materials/
+      parameters:
+        - name: teacher_student
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: subject
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: text
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: type
+          in: query
+          description: ''
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Material'
+      tags:
+        - materials
+    post:
+      operationId: materials_create
+      description: ViewSet для эндпойнта /materials/
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Material'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/Material'
+      tags:
+        - materials
+    parameters: []
+  '/materials/{id}/':
+    get:
+      operationId: materials_read
+      description: ViewSet для эндпойнта /materials/
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Material'
+      tags:
+        - materials
+    patch:
+      operationId: materials_partial_update
+      description: ViewSet для эндпойнта /materials/
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Material'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Material'
+      tags:
+        - materials
+    delete:
+      operationId: materials_delete
+      description: ViewSet для эндпойнта /materials/
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - materials
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /profile/:
+    get:
+      operationId: profile_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Profile'
+      tags:
+        - profile
+    patch:
+      operationId: profile_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Profile'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Profile'
+      tags:
+        - profile
+    parameters: []
+  /refresh/:
+    post:
+      operationId: refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TokenRefresh'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/TokenRefresh'
+      tags:
+        - refresh
+    parameters: []
+  /register/:
+    post:
+      operationId: ''
+      description: |-
+        Создание пользователя и отправка сообщения для верификации почты.
+        Эндпоинт доступен для всех пользователей. Доступен только метод POST. 
+        В случае успешного создания пользователю на почту отправляется письмо с вложенной ссылкой для подтверждения почты и в ответе возвращается предупреждение о том, что ему необходимо перейти на почту для подтверждения.
+        Эндпоинт не авторизует пользователя, а только создает его и отправляет письмо для подтверждения. Для авторизации см. раздел <b>Токены</b>
+        Если пользователь ввёл несуществующую почту, пользователь будет зарегистрирован, но письмо отправлено не будет.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Register'
+          x-examples:
+            Регистрация ученика:
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              first_name: Дмитрий
+              patronymic_name: Владимирович
+              last_name: Иванов
+              email: example@example.com
+              phone: '81234567890'
+              is_teacher: false
+              password: Fh789123!
+              password2: Fh789123!
+            Регистрация репетитора:
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              first_name: Дмитрий
+              patronymic_name: Владимирович
+              last_name: Иванов
+              email: example@example.com
+              phone: '81234567890'
+              is_teacher: true
+              password: Fh789123!
+              password2: Fh789123!
+          description: ''
+      responses:
+        '201':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: string
+                x-stoplight:
+                  id: nsvyeqhmay9fv
+                example: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
+          examples:
+            Успешная регистрация:
+              success: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
+        '400':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                field_name:
+                  - Обязательное поле.
+            properties:
+              field_name:
+                type: array
+                items:
+                  type: string
+                  example: Обязательное поле.
+          examples:
+            Ошибки валидации:
+              field_name:
+                - Обязательное поле.
+      tags:
+        - register
+    parameters: []
+  '/relate/student/{id}/':
+    post:
+      operationId: relate_student_create
+      description: |-
+        Отправляет запрос на добавление ученику, если он есть в базе
+        запрашивает подтверждения, если ученика нет в базе, то просто предлагает
+        зарегистрироваться
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - relate
+    patch:
+      operationId: relate_student_partial_update
+      description: Метод для отвязки ученика от учителя
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - relate
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  '/student/lesson/{id}/':
+    get:
+      operationId: student_lesson_read
+      description: |-
+        Возвращает конкретный урок для ученика,
+        имеется только возможность чтения
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/StudentDetailLesson'
+      tags:
+        - student
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this Урок.
+        required: true
+        type: integer
+  /subjects/:
+    get:
+      operationId: subjects_list
+      description: |-
+        Получение всех предметов,
+        только для аутентифицированных
+        пользователей
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Subject'
+      tags:
+        - subjects
+    parameters: []
+  /teacher/lesson/:
+    get:
+      operationId: teacher_lesson_list
+      description: |-
+        Возвращает конкретный урок
+        как для учителей, только учитель имеет право
+        создавать, редактировать и удалять урок
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TeacherDetailLesson'
+      tags:
+        - teacher
+    parameters: []
+  '/teacher/lesson/{id}/':
+    get:
+      operationId: teacher_lesson_read
+      description: |-
+        Возвращает конкретный урок
+        как для учителей, только учитель имеет право
+        создавать, редактировать и удалять урок
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+      tags:
+        - teacher
+    patch:
+      operationId: teacher_lesson_partial_update
+      description: |-
+        Возвращает конкретный урок
+        как для учителей, только учитель имеет право
+        создавать, редактировать и удалять урок
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+      tags:
+        - teacher
+    delete:
+      operationId: teacher_lesson_delete
+      description: |-
+        Возвращает конкретный урок
+        как для учителей, только учитель имеет право
+        создавать, редактировать и удалять урок
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - teacher
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this Урок.
+        required: true
+        type: integer
+  '/teacher/student/{id}/':
+    patch:
+      operationId: teacher_student_partial_update
+      description: Вьюха для CRUD-операций с учениками репетитора
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TeacherStudent'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TeacherStudent'
+      tags:
+        - teacher
+    delete:
+      operationId: teacher_student_delete
+      description: Вьюха для CRUD-операций с учениками репетитора
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - teacher
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /teacher/students/:
+    get:
+      operationId: teacher_students_list
+      description: Вьюха для CRUD-операций с учениками репетитора
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TeacherStudent'
+      tags:
+        - teacher
+    post:
+      operationId: teacher_students_create
+      description: Вьюха для CRUD-операций с учениками репетитора
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TeacherStudent'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/TeacherStudent'
+      tags:
+        - teacher
+    parameters: []
+  /teacher/subjects/:
+    get:
+      operationId: teacher_subjects_list
+      description: |-
+        Получение, обновление и
+        добавление предметов репетитора
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Subject'
+      tags:
+        - teacher
+    post:
+      operationId: teacher_subjects_create
+      description: |-
+        Получение, обновление и
+        добавление предметов репетитора
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserSubject'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserSubject'
+      tags:
+        - teacher
+    put:
+      operationId: teacher_subjects_update
+      description: |-
+        Получение, обновление и
+        добавление предметов репетитора
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserSubject'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserSubject'
+      tags:
+        - teacher
+    parameters: []
+  /user/lesson/list/:
+    get:
+      operationId: user_lesson_list_list
+      description: |-
+        Возвращает список уроков с пагинацией и
+        возможностью фильтрации
+      parameters:
+        - name: teacher
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: student
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: date
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: subject
+          in: query
+          description: ''
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+    post:
+      operationId: user_lesson_list_create
+      description: |-
+        Возвращает список уроков с пагинацией и
+        возможностью фильтрации
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - user
+    parameters: []
+  /user/lesson/number/:
+    get:
+      operationId: user_lesson_number_list
+      description: |-
+        Отфильтрованные данные группируются по выбранному параметру,
+        по умолчанию это дата, но также имеется возможность по
+        предметам, учителям для учеников и ученикам для учителей.
+      parameters:
+        - name: teacher
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: student
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: date
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: subject
+          in: query
+          description: ''
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+    parameters: []
+definitions:
+  TokenObtainPair:
+    required:
+      - email
+      - password
+    type: object
+    properties:
+      email:
+        title: Email
+        type: string
+        minLength: 1
+      password:
+        title: Password
+        type: string
+        minLength: 1
+    x-stoplight:
+      id: oi5dc9gs8qqgm
+  Material:
+    required:
+      - teacher_student
+      - subject
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      teacher:
+        title: Teacher
+        type: integer
+        readOnly: true
+      teacher_student:
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+      subject:
+        title: Subject
+        type: string
+      file:
+        title: Файл материалов
+        type: string
+        readOnly: true
+        format: uri
+      text:
+        title: Текст к материалу
+        type: string
+      type:
+        title: Type
+        type: string
+        enum:
+          - public
+          - private
+        default: private
+    x-stoplight:
+      id: nbexrd7ac4dg6
+  Profile:
+    required:
+      - first_name
+      - last_name
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      first_name:
+        title: Имя
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+      patronymic_name:
+        title: Отчество
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+      last_name:
+        title: Фамилия
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+      phone:
+        title: Телефон
+        type: string
+        pattern: '^((\+7|7|8)[0-9]{10})$'
+        minLength: 1
+        x-nullable: true
+      email:
+        title: Электронная почта
+        type: string
+        format: email
+        readOnly: true
+        minLength: 1
+      photo:
+        title: Фотография
+        type: string
+        readOnly: true
+        format: uri
+    x-stoplight:
+      id: 58y0jwbrbj68t
+  TokenRefresh:
+    required:
+      - refresh
+    type: object
+    properties:
+      refresh:
+        title: Refresh
+        type: string
+        minLength: 1
+      access:
+        title: Access
+        type: string
+        readOnly: true
+        minLength: 1
+    x-stoplight:
+      id: rz695mqtjmt4h
+  Register:
+    type: object
+    x-stoplight:
+      id: euzgkice5b9ac
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      first_name:
+        title: Имя
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+        description: 'Имя '
+        example: Дмитрий
+      patronymic_name:
+        title: Отчество
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+        description: Отчество
+        example: Владимирович
+      last_name:
+        title: Фамилия
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+        description: Фамилия
+        example: Иванов
+      email:
+        title: Электронная почта
+        type: string
+        format: email
+        maxLength: 254
+        minLength: 7
+        description: Почта
+        example: example@example.com
+      phone:
+        title: Телефон
+        type: string
+        pattern: '^((\+7|7|8)[0-9]{10})$'
+        description: Номер телефона
+        minLength: 11
+        maxLength: 13
+        example: '81234567890'
+        x-nullable: true
+      is_teacher:
+        title: Is teacher
+        type: boolean
+        description: Тип пользователя
+      password:
+        title: Password
+        type: string
+        description: Пароль
+        format: password
+        minLength: 8
+        maxLength: 128
+        example: Fh789123!
+      password2:
+        title: Password2
+        type: string
+        description: Повторение пароля
+        format: password
+        minLength: 8
+        maxLength: 128
+        example: Fh789123!
+    required:
+      - first_name
+      - last_name
+      - email
+      - is_teacher
+      - password
+      - password2
+  StudentDetailLesson:
+    required:
+      - date
+      - start_time
+      - end_time
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      date:
+        title: Дата
+        type: string
+        format: date
+      start_time:
+        title: Начало урока
+        type: string
+      end_time:
+        title: Конец урока
+        type: string
+      status:
+        title: Status
+        type: string
+        readOnly: true
+      homework:
+        title: Homework
+        type: boolean
+        readOnly: true
+      teacher:
+        title: Teacher
+        type: string
+        readOnly: true
+      subject_title:
+        title: Subject title
+        type: string
+        readOnly: true
+      topic:
+        title: Тема урока
+        type: string
+        maxLength: 40
+      comment:
+        title: Комментарий
+        type: string
+    x-stoplight:
+      id: 6nlhu77clz50r
+  Subject:
+    required:
+      - title
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      title:
+        title: Title
+        type: string
+        maxLength: 30
+        minLength: 1
+    x-stoplight:
+      id: 6idr3p2j2cxn3
+  TeacherDetailLesson:
+    required:
+      - date
+      - start_time
+      - end_time
+      - status
+      - subject
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      date:
+        title: Дата
+        type: string
+        format: date
+      start_time:
+        title: Начало урока
+        type: string
+      end_time:
+        title: Конец урока
+        type: string
+      status:
+        title: Status
+        type: string
+        minLength: 1
+      homework:
+        title: Homework
+        type: boolean
+        readOnly: true
+      student_full_name:
+        title: Student full name
+        type: string
+        readOnly: true
+      subject:
+        title: Subject
+        type: integer
+      subject_title:
+        title: Subject title
+        type: string
+        readOnly: true
+      topic:
+        title: Тема урока
+        type: string
+        maxLength: 40
+      comment:
+        title: Комментарий
+        type: string
+    x-stoplight:
+      id: hldvfkqomiu91
+  TeacherStudent:
+    required:
+      - last_name
+      - first_name
+      - email
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      last_name:
+        title: Фамилия
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+      first_name:
+        title: Имя
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+      patronymic_name:
+        title: Отчество
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+      phone:
+        title: Телефон
+        type: string
+        pattern: '^((\+7|7|8)[0-9]{10})$'
+        minLength: 1
+        x-nullable: true
+      email:
+        title: Электронная почта
+        type: string
+        format: email
+        maxLength: 254
+        minLength: 7
+      comment:
+        title: Comment
+        type: string
+      bind:
+        title: Привязка
+        type: string
+        enum:
+          - unrelated
+          - awaiting
+          - related
+    x-stoplight:
+      id: kjvoxdu35cpt9
+  UserSubject:
+    required:
+      - subjects
+    type: object
+    properties:
+      subjects:
+        type: array
+        items:
+          type: integer
+        uniqueItems: true
+      titles:
+        type: array
+        items:
+          type: string
+        readOnly: true
+        uniqueItems: true
+    x-stoplight:
+      id: 4c1ov33pucjk9
+    title: ''
+responses: {}
