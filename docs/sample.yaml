@@ -104,6 +104,8 @@ paths:
               detail:
                 type: string
                 default: No active account found with the given credentials
+          examples:
+            - detail: No active account found with the given credentials
       tags:
         - Токены
       security: []
@@ -119,6 +121,9 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/TokenRefresh'
+          x-examples:
+            - refresh: string
+              access: string
       responses:
         '200':
           description: ''

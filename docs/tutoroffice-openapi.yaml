@@ -30,7 +30,7 @@ paths:
         required: true
         type: string
     post:
-      summary: ''
+      summary: Подтверждение почты
       operationId: Активация пользователя
       responses:
         '200':
@@ -94,23 +94,115 @@ paths:
         type: string
   /login/:
     post:
-      operationId: login_create
-      description: |-
-        Вход, если почта не подтверждена,
-        будет отправлено сообщение с подтверждением
+      operationId: Получить токены авторизации
+      description: |
+        <p>
+        <a href="https://jwt.io/introduction">Токены JWT</a> - единственный допустимый способ авторизации пользователей в рамках данного проекта. Для получения токена в запросе нужно передать email пользователя и password. В случае, если пользователь с такой парой email/password существует, сервер создаст пару токенов refresh и access и отправит их в ответном JSON вместе с типом пользователя, необходимым для frontend-приложения. Эндпоинт доступен для всех пользователей, допустим только метод POST. Если пользователь не подтвердил почту, на неё будет отправлено письмо с просьбой подтверждения.
+
+        Любой запрос к серверу, требующий авторизацию и аутентификацию следует отправлять с авторизационным токеном:<br>
+        <pre>Authorization: Bearer ACCESS_TOKEN</pre>
+        </p>
+        <p>
+        Вот общий воркфлоу для аутентификации пользователей в бэкэнде Django/DRF с использованием JWT с токенами <code>access</code> и <code>refresh</code>:
+        <ul>
+        <li>Пользователь вводит свои учетные данные для входа (имя пользователя/адрес электронной почты и пароль) в форму входа в интерфейсе.</li>
+        <li>Внешний интерфейс (фронтэнд) отправляет запрос POST к эндпоинту API, отвечающему за обработку аутентификации пользователя.</li>
+        <li>В бэкэнде Django/DRF контроллер аутентификации проверяет учетные данные пользователя. Если учетные данные действительны, серверная часть создает access-токен JWT и refresh-токен и возвращает их фронтэнду в ответе.</li>
+        <li>Во внешнем интерфейсе действие входа получает ответ и извлекает токены доступа и обновления JWT. Затем токены сохраняются в локальном хранилище или в файле cookie для будущего использования.</li>
+        <li>Для всех последующих запросов API, сделанных внешним интерфейсом, access-токен JWT включается в заголовок авторизации запроса: <code>Authorization: Bearer ACCESS_TOKEN</code></li>
+        <li>В бэкэнде Django/DRF класс аутентификации JWT используется для проверки токена доступа JWT и извлечения из него информации о пользователе.</li>
+        <li>Если токен доступа действителен, запрос обрабатывается так, как если бы пользователь прошел проверку подлинности. Если токен доступа недействителен, серверная часть возвращает ответ об ошибке, указывающий, что пользователь не прошел проверку подлинности.</li>
+        <li>Если срок действия access-токена истек, внешний интерфейс может использовать refresh-токен  для получения нового access-токена, отправив запрос к <code>/refresh/</code> бэкэнда Django/DRF. Эндпоинт проверяет refresh-токен и выдает в ответ новый access и refresh токены.</li>
+        <li>Внешний интерфейс получает новые токены и сохраняет их в локальном хранилище или файле cookie для будущего использования.</li>
+        <li>Затем внешний интерфейс повторяет исходный запрос API с новым access-токеном.</li>
+        </ul>
+        </p>
+        <p>
+        Это обычная практика для внешнего интерфейса, чтобы контролировать возраст access-токена.
+        Внешний интерфейс должен проверять время истечения срока действия access-токена перед
+        выполнением запроса API. Если срок действия токена истек, внешний интерфейс
+        может использовать refresh-токен для получения нового access-токена, как описано выше.
+        </p>
+        <p>
+        Время истечения срока действия токена JWT хранится в полезной нагрузке токена.
+        Эта информация представляется в виде временной метки Unix и указывается с помощью ключа «exp» (срок действия).
+        Вот пример токена JWT со сроком действия:
+        <pre>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+        eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyNDI2MjJ9.
+        SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        </pre>
+        В этом примере время истечения срока действия <code>1516242622</code> включено во вторую
+        часть токена JWT, которая является полезной нагрузкой.
+        Полезная нагрузка — это объект JSON, закодированный как строка Base64, и он содержит ключи,
+        определяющие свойства токена, включая время истечения срока действия.
+        </p>
+        <p>
+        Чтобы получить доступ к сроку действия токена JWT, интерфейсу необходимо декодировать токен
+        и проанализировать полезную нагрузку.
+        Вот пример того, как декодировать токен JWT с помощью библиотеки jsonwebtoken в Node.js:
+        <pre>
+        const jwt = require('jsonwebtoken');
+
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyNDI2MjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+        const decoded = jwt.decode(token);
+
+        const expiration = decoded.exp;
+        </pre>
+        </p>
       parameters:
         - name: data
           in: body
           required: true
           schema:
             $ref: '#/definitions/TokenObtainPair'
+          x-examples:
+            Получение токенов авторизации:
+              email: example@example.com
+              password: Fh789123!
       responses:
-        '201':
+        '200':
           description: ''
           schema:
             $ref: '#/definitions/TokenObtainPair'
+          examples:
+            Получение токенов для ученика:
+              email: example@example.com
+              password: Fh789123!
+              role: student
+            Получение токенов для репетитора:
+              email: example@example.com
+              password: Fh789123!
+              role: teacher
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                x-stoplight:
+                  id: qkn68rfm2km3j
+                example: Не найдено активной учетной записи с указанными данными
+          examples:
+            Ошибка валидации:
+              detail: Не найдено активной учетной записи с указанными данными
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                x-stoplight:
+                  id: 4jec7vsr1y81y
+                example: Ваша почта не подтверждена! На неё было отправлено новое письмо с подтверждением!
+          examples:
+            Неподтвержденный аккаунт:
+              detail: Ваша почта не подтверждена! На неё было отправлено новое письмо с подтверждением!
       tags:
         - login
+      summary: Создание токенов
     parameters: []
   /materials/:
     get:
@@ -236,10 +328,8 @@ paths:
     parameters: []
   /refresh/:
     post:
-      operationId: refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+      operationId: Обновить токен
+      description: 'Принимает refresh-токен и в случае, если он верный, возвращает пару access и refresh.'
       parameters:
         - name: data
           in: body
@@ -251,12 +341,17 @@ paths:
           description: ''
           schema:
             $ref: '#/definitions/TokenRefresh'
+          examples:
+            Обновление токенов:
+              refresh: string
+              access: string
       tags:
         - refresh
+      summary: Обновление токенов
     parameters: []
   /register/:
     post:
-      operationId: Регистрация пользователя
+      operationId: Регистрация
       description: |-
         Создание пользователя и отправка сообщения для верификации почты.
         Эндпоинт доступен для всех пользователей. Доступен только метод POST. 
@@ -327,6 +422,7 @@ paths:
                 - Обязательное поле.
       tags:
         - register
+      summary: Создание пользователя
     parameters: []
   '/relate/student/{id}/':
     post:
@@ -658,21 +754,32 @@ paths:
     parameters: []
 definitions:
   TokenObtainPair:
-    required:
-      - email
-      - password
     type: object
+    x-stoplight:
+      id: oi5dc9gs8qqgm
+    x-examples: {}
     properties:
       email:
         title: Email
         type: string
         minLength: 1
+        description: Почта
+        example: example@example.com
+        format: email
       password:
         title: Password
         type: string
         minLength: 1
-    x-stoplight:
-      id: oi5dc9gs8qqgm
+        description: Пароль
+        example: Fh789123!
+        format: password
+      role:
+        type: string
+        x-stoplight:
+          id: vxmjpofs6yjbm
+    required:
+      - email
+      - password
   Material:
     required:
       - teacher_student
@@ -854,6 +961,7 @@ definitions:
       - is_teacher
       - password
       - password2
+    x-examples: []
   StudentDetailLesson:
     required:
       - date
