@@ -31,7 +31,7 @@ paths:
         type: string
     post:
       summary: Подтверждение почты
-      operationId: Активация пользователя
+      operationId: activate
       responses:
         '200':
           description: ''
@@ -77,6 +77,8 @@ paths:
         Если у токена истечёт срок годности (1 день) или он является невалидным (попытка подмены), или же если пользователь захочет повторно воспользоваться ссылкой с этим же токеном, вернётся ошибка.
         В случае успеха возвращаются access и refresh-токены, чтобы авторизовать и перенаправить профиль пользователя и тип пользователя, который необходим для fronted-приложения. Подробнее о токенах см. раздел <b>Токены</b>
       parameters: []
+      tags:
+        - Пользователи
   '/confirm/{token}':
     get:
       operationId: confirm_read
@@ -94,7 +96,7 @@ paths:
         type: string
   /login/:
     post:
-      operationId: Получить токены авторизации
+      operationId: login
       description: |
         <p>
         <a href="https://jwt.io/introduction">Токены JWT</a> - единственный допустимый способ авторизации пользователей в рамках данного проекта. Для получения токена в запросе нужно передать email пользователя и password. В случае, если пользователь с такой парой email/password существует, сервер создаст пару токенов refresh и access и отправит их в ответном JSON вместе с типом пользователя, необходимым для frontend-приложения. Эндпоинт доступен для всех пользователей, допустим только метод POST. Если пользователь не подтвердил почту, на неё будет отправлено письмо с просьбой подтверждения.
@@ -200,9 +202,9 @@ paths:
           examples:
             Неподтвержденный аккаунт:
               detail: Ваша почта не подтверждена! На неё было отправлено новое письмо с подтверждением!
-      tags:
-        - login
       summary: Создание токенов
+      tags:
+        - Токены
     parameters: []
   /materials/:
     get:
@@ -328,7 +330,7 @@ paths:
     parameters: []
   /refresh/:
     post:
-      operationId: Обновить токен
+      operationId: refresh
       description: 'Принимает refresh-токен и в случае, если он верный, возвращает пару access и refresh.'
       parameters:
         - name: data
@@ -345,13 +347,13 @@ paths:
             Обновление токенов:
               refresh: string
               access: string
-      tags:
-        - refresh
       summary: Обновление токенов
+      tags:
+        - Токены
     parameters: []
   /register/:
     post:
-      operationId: Регистрация
+      operationId: register
       description: |-
         Создание пользователя и отправка сообщения для верификации почты.
         Эндпоинт доступен для всех пользователей. Доступен только метод POST. 
@@ -387,6 +389,8 @@ paths:
               password2: Fh789123!
           description: ''
       responses:
+        '200':
+          description: ''
         '201':
           description: ''
           schema:
@@ -420,9 +424,9 @@ paths:
             Ошибки валидации:
               field_name:
                 - Обязательное поле.
-      tags:
-        - register
       summary: Создание пользователя
+      tags:
+        - Пользователи
     parameters: []
   '/relate/student/{id}/':
     post:
