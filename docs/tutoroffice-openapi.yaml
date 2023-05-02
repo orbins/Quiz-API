@@ -23,12 +23,86 @@ securityDefinitions:
 security:
   - Basic: []
 paths:
-  'activate/{token}/':
+  /register/:
+    post:
+      operationId: register
+      description: |-
+        Создание пользователя и отправка сообщения для верификации почты.
+        Эндпоинт доступен для всех пользователей. Доступен только метод POST. 
+        В случае успешного создания пользователю на почту отправляется письмо с вложенной ссылкой для подтверждения почты и в ответе возвращается предупреждение о том, что ему необходимо перейти на почту для подтверждения.
+        Эндпоинт не авторизует пользователя, а только создает его и отправляет письмо для подтверждения.
+        Если пользователь ввёл несуществующую почту, пользователь будет создан, но письмо отправлено не будет.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Register'
+          x-examples:
+            Регистрация ученика:
+              first_name: Дмитрий
+              patronymic_name: Владимирович
+              last_name: Иванов
+              email: example@example.com
+              phone: '81234567890'
+              is_teacher: false
+              password: Fh789123!
+              password2: Fh789123!
+            Регистрация репетитора:
+              first_name: Дмитрий
+              patronymic_name: Владимирович
+              last_name: Иванов
+              email: example@example.com
+              phone: '81234567890'
+              is_teacher: true
+              password: Fh789123!
+              password2: Fh789123!
+          description: ''
+      responses:
+        '201':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: string
+                x-stoplight:
+                  id: nsvyeqhmay9fv
+                example: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
+                description: Сообщение об успешной регистрации
+          examples:
+            Успешная регистрация:
+              success: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
+        '400':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                field_name:
+                  - Обязательное поле.
+            properties:
+              field_name:
+                type: array
+                description: 'Поле, в котором возникла ошибка валидации'
+                items:
+                  type: string
+                  example: Обязательное поле.
+          examples:
+            Ошибки валидации:
+              field_name:
+                - Обязательное поле.
+      summary: Создание пользователя
+      tags:
+        - Пользователи
+    parameters: []
+  '/activate/{token}/':
     parameters:
       - name: token
         in: path
-        required: true
         type: string
+        description: 'Токен, который встроен в ссылку, присылаемую на почту пользователю для подтверждения своего аккаунта. Предназначен для идентификации пользователя и сохранения конфиденциальности его данных.'
+        required: true
     post:
       summary: Подтверждение почты
       operationId: activate
@@ -79,21 +153,6 @@ paths:
       parameters: []
       tags:
         - Пользователи
-  '/confirm/{token}':
-    get:
-      operationId: confirm_read
-      description: Подтверждение учеником привязки к репетитору
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - confirm
-    parameters:
-      - name: token
-        in: path
-        required: true
-        type: string
   /login/:
     post:
       operationId: login
@@ -206,6 +265,154 @@ paths:
       tags:
         - Токены
     parameters: []
+  /refresh/:
+    post:
+      operationId: refresh
+      description: 'Принимает refresh-токен и в случае, если он верный, возвращает пару access и refresh.'
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TokenRefresh'
+          x-examples: {}
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TokenRefresh'
+          examples:
+            Обновление токенов:
+              refresh: string
+              access: string
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                x-stoplight:
+                  id: rph7m54bhl52u
+                example: Токен недействителен или просрочен
+              code:
+                type: string
+                x-stoplight:
+                  id: dd5ix6jpk4yuu
+                example: token_not_valid
+          examples:
+            Невалидный токен:
+              detail: Токен недействителен или просрочен
+              code: token_not_valid
+      summary: Обновление токенов
+      tags:
+        - Токены
+    parameters: []
+  /password-reset/:
+    post:
+      summary: Сброс пароля
+      operationId: post-password-reset
+      responses:
+        '204':
+          description: 'Успешное создание запроса на сброс, получение письма с подтверждением на почту'
+      tags:
+        - Сброс
+      description: 'Сброс пароля. Для осуществления операции необходимо передать почту, к которой привязан аккаунт пользователя. В случае если такой аккаунт существует на него будет отправлено письмо с подтверждением сброса. В ином случае письмо попросту не будет отправлено.'
+  /password-reset/done/:
+    get:
+      summary: Уведомление о сбросе
+      tags:
+        - Сброс
+      responses:
+        '204':
+          description: Возвращается шаблон с подтверждением принятия запроса от пользователя на сброс пароля.
+          schema:
+            type: object
+            properties: {}
+      operationId: password-reset-done
+      description: 'Шаблон, который возвращается в качестве ответа на ввод пользователем почты для сброса пароля. Чтобы не раскрыать клиентскую базу шаблон возвращается в любом случае, даже если пользователь ввёл почту, которой нет в базе данных. В таком случае письмо с подтверждением сброса попросту не будет отправлено.'
+    parameters: []
+  '/password-reset/confirm/{uid}/{token}/':
+    parameters:
+      - type: string
+        name: uid
+        in: path
+        required: true
+        description: 'Уникальный идентификатор пользователя, необходим для персонализации писем.'
+      - type: string
+        name: token
+        in: path
+        required: true
+        description: 'Токен, необходим для обеспечения конфиденциальности и целостности данных'
+    post:
+      summary: Подтверждение сброса пароля
+      operationId: ''
+      responses:
+        '204':
+          description: 'Пароль успешно изменён, перебросит на другой шаблон'
+        '400':
+          description: Ошибки валидации
+          schema:
+            type: object
+            properties:
+              field_name:
+                type: array
+                items:
+                  type: string
+            x-examples:
+              Example 1:
+                field_name:
+                  - Обязательное поле.
+          examples:
+            Ошибки валидации:
+              field_name:
+                - Обязательное поле
+      tags:
+        - Сброс
+      description: 'Для подтверждение сброса пароля пользователю необходимо перейти по ссылке, находящейся в письме, присланном ему на почту. Ему необходимо ввести новый пароль и повторить его.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              new_password1:
+                type: string
+                x-stoplight:
+                  id: 4q9ynd39sr9b2
+                format: password
+              new_password2:
+                type: string
+                x-stoplight:
+                  id: ri51no59n4v1c
+                format: password
+  /password-reset/complete/:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '204':
+          description: Шаблон с подтверждением успешной смены пароля.
+          schema:
+            type: object
+            properties: {}
+      operationId: password-reset-complete
+      description: Возвращает шаболон в случае успешной смены пароля пользователем
+  '/confirm/{token}':
+    get:
+      operationId: confirm_read
+      description: Подтверждение учеником привязки к репетитору
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - confirm
+    parameters:
+      - name: token
+        in: path
+        required: true
+        type: string
   /materials/:
     get:
       operationId: materials_list
@@ -327,106 +534,6 @@ paths:
             $ref: '#/definitions/Profile'
       tags:
         - profile
-    parameters: []
-  /refresh/:
-    post:
-      operationId: refresh
-      description: 'Принимает refresh-токен и в случае, если он верный, возвращает пару access и refresh.'
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/TokenRefresh'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/TokenRefresh'
-          examples:
-            Обновление токенов:
-              refresh: string
-              access: string
-      summary: Обновление токенов
-      tags:
-        - Токены
-    parameters: []
-  /register/:
-    post:
-      operationId: register
-      description: |-
-        Создание пользователя и отправка сообщения для верификации почты.
-        Эндпоинт доступен для всех пользователей. Доступен только метод POST. 
-        В случае успешного создания пользователю на почту отправляется письмо с вложенной ссылкой для подтверждения почты и в ответе возвращается предупреждение о том, что ему необходимо перейти на почту для подтверждения.
-        Эндпоинт не авторизует пользователя, а только создает его и отправляет письмо для подтверждения.
-        Если пользователь ввёл несуществующую почту, пользователь будет создан, но письмо отправлено не будет.
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Register'
-          x-examples:
-            Регистрация ученика:
-              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-              first_name: Дмитрий
-              patronymic_name: Владимирович
-              last_name: Иванов
-              email: example@example.com
-              phone: '81234567890'
-              is_teacher: false
-              password: Fh789123!
-              password2: Fh789123!
-            Регистрация репетитора:
-              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-              first_name: Дмитрий
-              patronymic_name: Владимирович
-              last_name: Иванов
-              email: example@example.com
-              phone: '81234567890'
-              is_teacher: true
-              password: Fh789123!
-              password2: Fh789123!
-          description: ''
-      responses:
-        '200':
-          description: ''
-        '201':
-          description: ''
-          schema:
-            type: object
-            properties:
-              success:
-                type: string
-                x-stoplight:
-                  id: nsvyeqhmay9fv
-                example: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
-                description: Сообщение об успешной регистрации
-          examples:
-            Успешная регистрация:
-              success: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
-        '400':
-          description: ''
-          schema:
-            type: object
-            x-examples:
-              Example 1:
-                field_name:
-                  - Обязательное поле.
-            properties:
-              field_name:
-                type: array
-                description: 'Поле, в котором возникла ошибка валидации'
-                items:
-                  type: string
-                  example: Обязательное поле.
-          examples:
-            Ошибки валидации:
-              field_name:
-                - Обязательное поле.
-      summary: Создание пользователя
-      tags:
-        - Пользователи
     parameters: []
   '/relate/student/{id}/':
     post:
