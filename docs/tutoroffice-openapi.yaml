@@ -153,6 +153,104 @@ paths:
       parameters: []
       tags:
         - Пользователи
+  /profile/:
+    get:
+      operationId: profile_read
+      description: Получение профиля текущего пользователя. Эндпоинт доступен только для <b>текущего</b> авторизованного пользователя.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Profile'
+          examples:
+            Данные профиля:
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              first_name: Дмитрий
+              patronymic_name: Владимирович
+              last_name: Иванов
+              email: example@example.com
+              phone: '81234567890'
+              photo: 'http://example.com'
+        '401':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                detail: Учетные данные не были предоставлены.
+            properties:
+              detail:
+                type: string
+                example: Учетные данные не были предоставлены
+          examples:
+            Несанкционированный запрос:
+              detail: Учетные данные не были предоставлены
+      summary: Профиль пользователя
+      tags:
+        - Пользователи
+    patch:
+      operationId: profile_update
+      description: 'Частичное обновление данных профиля текущего пользователя. Эндпоинт доступен только для <b>текущего</b> авторизованного пользователя. Изменение почты недоступно. В ответ возварщаются все данные профиля пользователя, включая измененные.'
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Profile'
+          x-examples:
+            Поля для обновления:
+              first_name: Дмитрий
+              patronymic_name: Владимирович
+              last_name: Иванов
+              phone: '81234567890'
+              photo: 'http://example.com'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Profile'
+          examples:
+            Данные профиля пользователя:
+              first_name: Дмитрий
+              patronymic_name: Владимирович
+              last_name: Иванов
+              phone: '81234567890'
+              photo: 'http://example.com'
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              field_name:
+                type: array
+                items:
+                  type: string
+            x-examples:
+              Example 1:
+                field_name:
+                  - Обязательное поле.
+          examples:
+            Невалидное имя:
+              field_name:
+                - 'Имя указано некорректно.Только латинские или только русские символы, первая буква заглавная, от 2 до 50 символов'
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: Учетные данные не были предоставлены.
+          examples:
+            Пользователь не авторизован:
+              detail: Учетные данные не были предоставлены.
+      summary: Обновление профиля пользователя
+      tags:
+        - Пользователи
+    parameters: []
   /login/:
     post:
       operationId: login
@@ -388,7 +486,7 @@ paths:
                 format: password
   /password-reset/complete/:
     get:
-      summary: Your GET endpoint
+      summary: Пароль успешно сброшен
       tags: []
       responses:
         '204':
@@ -398,6 +496,52 @@ paths:
             properties: {}
       operationId: password-reset-complete
       description: Возвращает шаболон в случае успешной смены пароля пользователем
+  /subjects/:
+    get:
+      operationId: subjects_list
+      description: 'Получение <b>всех</b> предметов, доступно только для <b>репетиторов</b>. Возврщается имя предмета и его id.'
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Subject'
+          examples:
+            Список предметов:
+              - id: 0
+                title: string
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: Учетные данные не были предоставлены
+          examples:
+            Пользователь не авторизован:
+              detail: Учетные данные не были предоставлены
+        '403':
+          description: ''
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: У вас недостаточно прав для выполнения данного действия.
+          examples:
+            Несанкционированный запрос:
+              detail: У вас недостаточно прав для выполнения данного действия.
+      tags:
+        - Предметы
+      summary: Получение всех предметов
+    parameters: []
   '/confirm/{token}':
     get:
       operationId: confirm_read
@@ -506,35 +650,6 @@ paths:
         in: path
         required: true
         type: string
-  /profile/:
-    get:
-      operationId: profile_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Profile'
-      tags:
-        - profile
-    patch:
-      operationId: profile_update
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Profile'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Profile'
-      tags:
-        - profile
-    parameters: []
   '/relate/student/{id}/':
     post:
       operationId: relate_student_create
@@ -582,24 +697,6 @@ paths:
         description: A unique integer value identifying this Урок.
         required: true
         type: integer
-  /subjects/:
-    get:
-      operationId: subjects_list
-      description: |-
-        Получение всех предметов,
-        только для аутентифицированных
-        пользователей
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Subject'
-      tags:
-        - subjects
-    parameters: []
   /teacher/lesson/:
     get:
       operationId: teacher_lesson_list
@@ -735,9 +832,7 @@ paths:
   /teacher/subjects/:
     get:
       operationId: teacher_subjects_list
-      description: |-
-        Получение, обновление и
-        добавление предметов репетитора
+      description: 'Получение предметов текущего пользователя-репетитора. Эндпоинт доступен для всех авторизованных пользователей, которые являются репетиторами.'
       parameters: []
       responses:
         '200':
@@ -746,45 +841,226 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Subject'
+          examples:
+            Предметы репетитора:
+              - id: 0
+                title: string
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: Учетные данные не были предоставлены
+          examples:
+            Пользователь не авторизован:
+              detail: Учетные данные не были предоставлены
+        '403':
+          description: Forbidden
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: У вас недостаточно прав для выполнения данного действия.
+          examples:
+            Несанкционированный запрос:
+              detail: У вас недостаточно прав для выполнения данного действия.
+      summary: Получение предметов преподавателя
       tags:
-        - teacher
+        - Предметы
     post:
       operationId: teacher_subjects_create
-      description: |-
-        Получение, обновление и
-        добавление предметов репетитора
+      description: 'Добавление предметов для текущего пользователя-репетитора. Предметы можно выбрать только из списка всех существующих предметов. Возможность добавления (отправки POST) досутпна лишь единожды. Эндпоинт доступен для всех авторизованных пользователей, которые являются репетиторами. Принимается список id существующих предметов. '
       parameters:
         - name: data
           in: body
           required: true
           schema:
             $ref: '#/definitions/UserSubject'
+          x-examples:
+            Добавление предметов:
+              subjects:
+                - 1
+                - 2
+                - 3
       responses:
         '201':
           description: ''
           schema:
             $ref: '#/definitions/UserSubject'
-      tags:
-        - teacher
-    put:
-      operationId: teacher_subjects_update
-      description: |-
-        Получение, обновление и
-        добавление предметов репетитора
-      parameters:
-        - name: data
-          in: body
-          required: true
+          examples:
+            Предметы преподавателя:
+              subjects:
+                - 1
+                - 2
+                - 3
+              titles:
+                - string
+                - string
+                - string
+        '400':
+          description: Bad Request
           schema:
-            $ref: '#/definitions/UserSubject'
+            type: object
+            properties:
+              subjects:
+                type: string
+            x-examples:
+              Example 1:
+                subjects: Эта функция больше недоступна! Вы можете обновить перечень ваших предметов!
+          examples:
+            Неверный тип данных:
+              subjects:
+                - 'Некорректный тип. Ожидалось значение первичного ключа, получен str.'
+            Неверный формат данных:
+              subjects:
+                - 'Ожидался list со значениями, но был получен "str".'
+            Ввод id несуществующего предмета:
+              subjects:
+                - Недопустимый первичный ключ "2" - объект не существует.
+            Повторное создание:
+              subjects: Эта функция больше недоступна! Вы можете обновить перечень ваших предметов!
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: Учетные данные не были предоставлены
+          examples:
+            Пользователь не авторизован:
+              detail: Учетные данные не были предоставлены
+        '403':
+          description: Forbidden
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: У вас недостаточно прав для выполнения данного действия.
+          examples:
+            Несанкционированный запрос:
+              detail: У вас недостаточно прав для выполнения данного действия.
+      summary: Добавление предметов репетитору
+      tags:
+        - Предметы
+    parameters: []
+    patch:
+      summary: Обновление предметов репетитора
+      operationId: patch-teacher-subjects
       responses:
         '200':
           description: ''
+          examples:
+            Предметы преподавателя:
+              subjects:
+                - 1
+                - 2
+                - 3
+              titles:
+                - string
+                - string
+                - string
           schema:
-            $ref: '#/definitions/UserSubject'
+            type: object
+            properties:
+              subjects:
+                type: array
+                items:
+                  type: integer
+              titles:
+                type: array
+                items:
+                  type: string
+            x-examples:
+              Example 1:
+                subjects:
+                  - 1
+                titles:
+                  - История
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              subjects:
+                type: array
+                items:
+                  type: string
+            x-examples:
+              Example 1:
+                subjects:
+                  - Недопустимый первичный ключ "2" - объект не существует.
+          examples:
+            Неверный формат данных:
+              subjects:
+                - 'Ожидался list со значениями, но был получен "str".'
+            Ввод id несуществующего предмета:
+              subjects:
+                - Недопустимый первичный ключ "2" - объект не существует.
+            Неверный тип данных:
+              subjects:
+                - Недопустимый первичный ключ "2" - объект не существует.
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: Учетные данные не были предоставлены
+          examples:
+            Пользователь не авторизован:
+              detail: Учетные данные не были предоставлены
+        '403':
+          description: Forbidden
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: У вас недостаточно прав для выполнения данного действия.
+          examples:
+            Несанкционированный запрос:
+              detail: У вас недостаточно прав для выполнения данного действия.
+      description: 'Обновление предметов для текущего пользователя-репетитора. Предметы можно выбрать только из списка всех существующих предметов. Эндпоинт доступен для всех авторизованных пользователей, которые являются репетиторами. Принимается список id существующих предметов. '
       tags:
-        - teacher
-    parameters: []
+        - Предметы
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              subjects:
+                type: array
+                items:
+                  type: string
+            x-examples:
+              Example 1:
+                subjects:
+                  - Недопустимый первичный ключ "2" - объект не существует.
+          x-examples:
+            Обновление перечня предметов:
+              subjects:
+                - 1
+                - 2
+                - 3
   /user/lesson/list/:
     get:
       operationId: user_lesson_list_list
@@ -931,10 +1207,10 @@ definitions:
     x-stoplight:
       id: nbexrd7ac4dg6
   Profile:
-    required:
-      - first_name
-      - last_name
     type: object
+    x-stoplight:
+      id: 58y0jwbrbj68t
+    x-examples: []
     properties:
       id:
         title: Id
@@ -947,37 +1223,44 @@ definitions:
         pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
         maxLength: 50
         minLength: 2
+        description: |
+          Имя
       patronymic_name:
         title: Отчество
         type: string
         pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
         maxLength: 50
         minLength: 2
+        description: Отчество
       last_name:
         title: Фамилия
         type: string
         pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
         maxLength: 50
         minLength: 2
+        description: Фамилия
       phone:
         title: Телефон
         type: string
         pattern: '^((\+7|7|8)[0-9]{10})$'
-        minLength: 1
+        minLength: 11
+        maxLength: 13
+        description: Телефон
         x-nullable: true
       email:
         title: Электронная почта
-        type: string
         format: email
+        type: string
+        minLength: 7
+        maxLength: 254
+        description: Почта
         readOnly: true
-        minLength: 1
       photo:
         title: Фотография
         type: string
-        readOnly: true
         format: uri
-    x-stoplight:
-      id: 58y0jwbrbj68t
+        description: Фото
+        x-nullable: true
   TokenRefresh:
     required:
       - refresh
@@ -1240,22 +1523,22 @@ definitions:
     x-stoplight:
       id: kjvoxdu35cpt9
   UserSubject:
-    required:
-      - subjects
     type: object
+    x-stoplight:
+      id: 4c1ov33pucjk9
     properties:
       subjects:
         type: array
+        uniqueItems: true
         items:
           type: integer
-        uniqueItems: true
       titles:
         type: array
+        uniqueItems: true
         items:
           type: string
+          readOnly: true
         readOnly: true
-        uniqueItems: true
-    x-stoplight:
-      id: 4c1ov33pucjk9
-    title: ''
+    required:
+      - subjects
 responses: {}
