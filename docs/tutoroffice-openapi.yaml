@@ -559,7 +559,7 @@ paths:
         - Репетиторы
     post:
       operationId: teacher_students_create
-      description: 'Создание собственного ученика репетитора, которого после можно будет привязать к реальному пользователю из базы данных. Эндпоинт доступен только для пользователей-репетиторов. Для создания обязательными являются поля имени, фамилии и почты.'
+      description: 'Создание собственного ученика репетитора, которого после можно будет привязать к реальному пользователю из базы данных. Эндпоинт доступен только для пользователей-репетиторов. Для создания обязательными являются поля имени, фамилии и почты. Нельзя добавить себя в качестве ученика, также как и нельзя создать 2 учеников с одинаковой почтой.'
       parameters:
         - name: data
           in: body
@@ -600,18 +600,41 @@ paths:
   '/teacher/student/{id}/':
     patch:
       operationId: teacher_student_partial_update
-      description: Вьюха для CRUD-операций с учениками репетитора
+      description: 'Обновление данных ученика репетитора. Вне зависимости от привязки псевдоученика с пользователем из базы данных, учитель изменяет только данные самого псевдоученика, никак не затрагивая связанного с ним пользователя-ученика. Эндпоинт доступен только для пользователя-репетитора, который создал ученика. Нельзя обновить почту для ученика, к которому уже привязан реальный пользователь.'
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/TeacherStudent'
+            $ref: '#/definitions/TeacherStudentDetail - copy 2'
+          x-examples:
+            Изменение данных об ученике:
+              last_name: string
+              first_name: string
+              patronymic_name: string
+              phone: string
+              email: user@example.com
+              comment: string
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TeacherStudent'
+            $ref: '#/definitions/TeacherDetailLesson'
+          examples:
+            Измененные данные ученика:
+              id: 0
+              last_name: string
+              first_name: string
+              patronymic_name: string
+              phone: string
+              email: user@example.com
+              comment: string
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
     delete:
@@ -620,7 +643,11 @@ paths:
       parameters: []
       responses:
         '204':
-          description: ''
+          description: Ученик учпешно удалён
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
     parameters:
@@ -655,7 +682,7 @@ paths:
           $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
-      description: 'Получение полной информации о конкретном ученике репетитора. Доступно только для пользователя-репетитора, который создал ученика.'
+      description: 'Получение полной информации о конкретном ученике репетитора. Эндпоинт доступен только для пользователя-репетитора, который создал ученика.'
   '/confirm/{token}':
     get:
       operationId: confirm_read
