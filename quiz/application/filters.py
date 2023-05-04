@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 from django.db import models
-from .models import Categories
+from .models import Categories, Quizzes
 
 
 class CategoryFilter(filters.FilterSet):
@@ -24,3 +24,13 @@ class CategoryFilter(filters.FilterSet):
     class Meta:
         model = Categories
         fields = ('name',)
+
+
+class QuizFilter(filters.FilterSet):
+    """Фильтр для квизов по автору и категории"""
+    category = filters.CharFilter(field_name='category__name')
+    author = filters.CharFilter(field_name='author__username')
+
+    class Meta:
+        model = Quizzes
+        fields = ('category', 'author')

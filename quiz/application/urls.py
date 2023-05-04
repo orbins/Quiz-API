@@ -13,7 +13,6 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('categories/', CategoryList.as_view(), name='categories'),
-    path('category/<int:pk>/', CategoryDetail.as_view(), name='category'),
     path('quizzes/', QuizList.as_view(), name='quizzes'),
     path('quiz/<int:pk>/', QuizDetail.as_view(), name='quiz'),
     path('questions/', QuizQuestions.as_view(), name='questions'),

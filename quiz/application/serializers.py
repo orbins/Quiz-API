@@ -12,7 +12,7 @@ User = get_user_model()
 class CategorySerializer(serializers.ModelSerializer):
     """
     Сериализатор для обработки
-    CRUD операций с категориями
+    операций с категориями
     """
 
     class Meta:
@@ -20,12 +20,10 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
     def validate(self, attrs):
-        # Названия категорий не должны повторяться для пользователя
-        author = attrs['author']
         name = attrs['name']
         if Categories.objects.filter(name=name).exists():
             raise serializers.ValidationError({
-                  "error": "Такая категория уже существует!"})
+                  "detail": "Такая категория уже существует!"})
         return attrs
 
 
@@ -39,37 +37,37 @@ class QuizSerializer(serializers.ModelSerializer):
         required=True
     )
     # принимается и возвращается имя категории
-    category = serializers.CharField(
-        source='category.name')
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Categories.objects.all(),
+        write_only=True,
+    )
+    category_name = serializers.StringRelatedField(
+        source='category',
+        read_only=True
+    )
     # Автор - по умолчанию пользователь, который делает запрос
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
     author_name = serializers.StringRelatedField(
         source='author.username',
-        read_only=True)
+        read_only=True
+    )
 
     class Meta:
         model = Quizzes
-        fields = ('id', 'title', 'category',
-                  'author', 'author_name')
+        fields = ('id', 'title',
+                  'category', 'category_name',
+                  'author', 'author_name',)
 
     def validate(self, attrs):
-        author = attrs['author']
-        category_name = attrs['category']['name']
+        author = self.context['request'].user
+        category = attrs['category']
         title = attrs['title']
-        if Categories.objects.filter(name=category_name).exists():
-            category = Categories.objects.get(name=category_name)
-            # Названия квизов не должны повторяться для категорий
-            if Quizzes.objects.filter(title=title,
-                                      category=category,
-                                      author=author).exists():
-                raise serializers.ValidationError({"error":
-                                                   f"У вас уже есть квиз с именем {title} в категории {category}"})
-        else:
-            category = Categories.objects.create(name=category_name,
-                                                 author=attrs['author'])
-        # Заменяю имя категории на объект
-        attrs['category'] = category
+        if Quizzes.objects.filter(title=title,
+                                  category=category,
+                                  author=author).exists():
+            raise serializers.ValidationError({"error":
+                                               f"У вас уже есть квиз с именем '{title}' в категории '{category}'"})
         return attrs
 
 
