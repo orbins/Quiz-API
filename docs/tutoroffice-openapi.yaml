@@ -655,6 +655,7 @@ paths:
         in: path
         required: true
         type: string
+        description: идентификатор ученика репетитора
     get:
       summary: Получение ученика репетитора
       operationId: get-teacher-student-id
@@ -683,6 +684,111 @@ paths:
       tags:
         - Репетиторы
       description: 'Получение полной информации о конкретном ученике репетитора. Эндпоинт доступен только для пользователя-репетитора, который создал ученика.'
+  '/relate/student/{id}/':
+    post:
+      operationId: relate_student_create
+      description: |-
+        Отправляет запрос на добавление на почту (которую указал учитель) ученику, если он есть в базе. Если ученика нет в базе, то просто предлагает ему зарегистрироваться.
+        Если ученик уже привязан или у существующего пользователя нет профиля ученика, то возникнет исключение. Если почты не существует, сообщение простоне будет отправлено.
+        Эндпоинт досутпен только для пользователей-репетиторов.
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                x-stoplight:
+                  id: djduae9801ksd
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: string
+            x-examples:
+              Example 1:
+                success: Ваш запрос был успешно отправлен на почту пользователю!
+          examples:
+            Запрос отправлен успешно!:
+              success: Ваш запрос был успешно отправлен на почту пользователю!
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: Такой записи не существует!
+          examples:
+            У пользователя нет профиля ученика:
+              detail: 'Вы не можете добавить этого пользователя, так как он не является учеником!'
+            Ученик уже привязан:
+              detail: К данной записи ученик уже привязан!
+            Ученика создал другой репетитор:
+              detail: У вас нет прав на осуществление этого действия!
+            Записи ученика не существует:
+              detail: Такой записи не существует!
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Привязка ученика
+      summary: Привязка ученика к псевдоученику репетитора
+    patch:
+      operationId: relate_student_partial_update
+      description: Отвязка ученика от репетитора. Эндпоинт досутпен только пользователей-репетиторов.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: string
+            x-examples:
+              Example 1:
+                success: Ученик был успешно отвязан от вас!
+          examples:
+            Отвязка прошла успешно:
+              success: Ученик был успешно отвязан от вас!
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: Такой записи не существует!
+          examples:
+            Ученик не привязан к псевдоученику:
+              detail: К этой записи не привязан ученик!
+            Псевдоученик не относится к репетитору:
+              detail: У вас нет прав на осуществление этого действия!
+            Записи для отвязки не существует:
+              detail: Такой записи не существует!
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      summary: Отвязка ученика от псевдоученика репетитора
+      tags:
+        - Привязка ученика
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: идентификатор ученика репетитора
   '/confirm/{token}':
     get:
       operationId: confirm_read
@@ -786,33 +892,6 @@ paths:
           description: ''
       tags:
         - materials
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  '/relate/student/{id}/':
-    post:
-      operationId: relate_student_create
-      description: |-
-        Отправляет запрос на добавление ученику, если он есть в базе
-        запрашивает подтверждения, если ученика нет в базе, то просто предлагает
-        зарегистрироваться
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - relate
-    patch:
-      operationId: relate_student_partial_update
-      description: Метод для отвязки ученика от учителя
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - relate
     parameters:
       - name: id
         in: path
