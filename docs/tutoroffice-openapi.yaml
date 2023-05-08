@@ -529,7 +529,12 @@ paths:
   /teacher/students/:
     get:
       operationId: teacher_students_list
-      description: Получение списка
+      description: |-
+        <h4>Фиктивные ученики</h4>
+        <p>
+        В нашем проекте каждый репетитор имеет возможность создавать своих собственных учеников и использовать их для организации своего рабочего процесса, при этом нет необходимости в регистрации реального пользователя в качестве ученика. Это реализуется за счёт механизма создания так называемых <b>фиктивных</b> учеников. Это как раз таки и есть те самые ученики, которых создаёт репетитор. Для этого ему достаточно указать ФИО ученика и что важно <b>верный</b> адрес электронной почты, чтобы в дальнейшем этого фиктивного ученика можно было связать с реальным пользователем-учеником, отправив ему запрос на почту. Нет, ничего страшного в том, что репетитор может указать неверный или несуществующий адрес электронной почты, его всегда можно поменять, пока пользователь-ученик не привязан или же отвязать пользователя-ученик. 
+        </p>
+        Получение списка всех учеников репетитора. Эндпоинт доступен только для пользователей-репетиторов.
       parameters: []
       responses:
         '200':
@@ -554,12 +559,15 @@ paths:
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
-      summary: Получение учеников репетитора
+      summary: Получение фиктивных учеников
       tags:
         - Репетиторы
     post:
       operationId: teacher_students_create
-      description: 'Создание собственного ученика репетитора, которого после можно будет привязать к реальному пользователю из базы данных. Эндпоинт доступен только для пользователей-репетиторов. Для создания обязательными являются поля имени, фамилии и почты. Нельзя добавить себя в качестве ученика, также как и нельзя создать 2 учеников с одинаковой почтой.'
+      description: |-
+        <p>
+        Создание собственного фиктивного ученика репетитора, которого в дальнейшем можно будет привязать к реальному пользователю. Эндпоинт доступен только для пользователей-репетиторов. Для создания обязательными являются поля имени, фамилии и почты. Нельзя добавить себя в качестве ученика, также как и нельзя создать 2 учеников с одинаковой почтой.
+        </p>
       parameters:
         - name: data
           in: body
@@ -595,12 +603,12 @@ paths:
           $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
-      summary: Создание ученика репетитора
+      summary: Создание фиктивного ученика
     parameters: []
   '/teacher/student/{id}/':
     patch:
       operationId: teacher_student_partial_update
-      description: 'Обновление данных ученика репетитора. Вне зависимости от привязки псевдоученика с пользователем из базы данных, учитель изменяет только данные самого псевдоученика, никак не затрагивая связанного с ним пользователя-ученика. Эндпоинт доступен только для пользователя-репетитора, который создал ученика. Нельзя обновить почту для ученика, к которому уже привязан реальный пользователь.'
+      description: 'Обновление данных фиктивного ученика репетитора. Вне зависимости от привязки фиктивного с пользователем из базы данных, учитель изменяет только данные самого фиктивного ученика, никак не затрагивая связанного с ним пользователя-ученика. Эндпоинт доступен только для пользователя-репетитора, который создал ученика. Нельзя обновить почту для ученика, к которому уже привязан реальный пользователь.'
       parameters:
         - name: data
           in: body
@@ -619,7 +627,7 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TeacherDetailLesson'
+            $ref: '#/definitions/TeacherStudentDetail - copy'
           examples:
             Измененные данные ученика:
               id: 0
@@ -637,19 +645,21 @@ paths:
           $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
+      summary: Изменение данных фиктивного ученика
     delete:
       operationId: teacher_student_delete
-      description: Вьюха для CRUD-операций с учениками репетитора
+      description: 'Удаление фиктивного ученика репетитора. Вместе с учеником удлаяются все привязанные к нему уроки, материалы и домашние задания. Эндпоинт доступен только для пользователя-репетитора, создавшего ученика.'
       parameters: []
       responses:
         '204':
-          description: Ученик учпешно удалён
+          description: Ученик успешно удалён
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
+      summary: Удаление фиктивного ученика
     parameters:
       - name: id
         in: path
@@ -657,7 +667,7 @@ paths:
         type: string
         description: идентификатор ученика репетитора
     get:
-      summary: Получение ученика репетитора
+      summary: Получение фиктивного ученика
       operationId: get-teacher-student-id
       responses:
         '200':
@@ -683,14 +693,16 @@ paths:
           $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
-      description: 'Получение полной информации о конкретном ученике репетитора. Эндпоинт доступен только для пользователя-репетитора, который создал ученика.'
+      description: 'Получение полной информации о конкретном фиктивном ученике репетитора. Эндпоинт доступен только для пользователя-репетитора, который создал ученика.'
   '/relate/student/{id}/':
     post:
       operationId: relate_student_create
       description: |-
-        Отправляет запрос на добавление на почту (которую указал учитель) ученику, если он есть в базе. Если ученика нет в базе, то просто предлагает ему зарегистрироваться.
-        Если ученик уже привязан или у существующего пользователя нет профиля ученика, то возникнет исключение. Если почты не существует, сообщение простоне будет отправлено.
+        <p>
+        Отправляет запрос на добавление на почту (которую указал учитель) пользователю-ученику, если он есть в базе. Если пользователя с такой почтой нет в базе, то предлагает ему зарегистрироваться.
+        Если ученик уже привязан или у существующего пользователя нет профиля ученика, то возникнет ошибка. Если почты не существует, сообщение не будет отправлено.
         Эндпоинт досутпен только для пользователей-репетиторов.
+        <p>
       parameters:
         - in: body
           name: body
@@ -738,12 +750,12 @@ paths:
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
+      summary: Привязка пользователя к фиктивному ученику
       tags:
-        - Привязка ученика
-      summary: Привязка ученика к псевдоученику репетитора
+        - Репетиторы
     patch:
       operationId: relate_student_partial_update
-      description: Отвязка ученика от репетитора. Эндпоинт досутпен только пользователей-репетиторов.
+      description: Отвязка ученика от репетитора. Эндпоинт доступен только пользователей-репетиторов.
       parameters: []
       responses:
         '200':
@@ -780,7 +792,7 @@ paths:
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
-      summary: Отвязка ученика от псевдоученика репетитора
+      summary: Отвязка пользователя от фиктивного ученика
       tags:
         - Привязка ученика
     parameters:
@@ -789,21 +801,349 @@ paths:
         required: true
         type: string
         description: идентификатор ученика репетитора
-  '/confirm/{token}':
-    get:
-      operationId: confirm_read
-      description: Подтверждение учеником привязки к репетитору
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - confirm
+  '/confirm/{token}/':
     parameters:
       - name: token
         in: path
         required: true
         type: string
+        description: 'Токен, предназначен для идентификации пользователя-ученика и сохранения конфиденциальности данных.'
+    post:
+      summary: Подтверждение привязки пользователем-учеником
+      operationId: post-confirm-token
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: string
+            x-examples:
+              Example 1:
+                success: Вы были успешно добавлены к репетитору!
+          examples:
+            Привязка выполнена успешно:
+              success: Вы были успешно добавлены к репетитору!
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+            x-examples:
+              Example 1:
+                detail: Ссылка больше недействительна!
+          examples:
+            Повторный запрос с одним и тем же токеном:
+              detail: Ссылка больше недействительна!
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      description: Подтверждение учеником привязки к репетитору. При повторном запросе с одним и тем же токеном в качестве параметра эндпоинт становится недоступным для использования.
+      tags:
+        - Ученики
+  /student/teachers/:
+    get:
+      operationId: student_teachers_list
+      description: Просмотр списка репетиторов ученика. Эндпоинт доступен только для пользователей-учеников.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/StudentTeacher'
+          examples:
+            Список репетиторов ученика:
+              - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                first_name: string
+                last_name: string
+                patronymic_name: string
+                email: user@example.com
+                phone: stringstrin
+                photo: 'http://example.com'
+              - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                first_name: string
+                last_name: string
+                patronymic_name: string
+                email: user@example.com
+                phone: stringstrin
+                photo: 'http://example.com'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      summary: Просмотр списка репетиторов
+      tags:
+        - Ученики
+    parameters: []
+  '/student/teachers/{id}/':
+    get:
+      operationId: student_teachers_read
+      description: Просмотр отдельно взятого репетитора ученика. Эндпоинт доступен только для пользователей-учеников.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/StudentTeacher'
+          examples:
+            Репетитор ученика:
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              first_name: string
+              last_name: string
+              patronymic_name: string
+              email: user@example.com
+              phone: stringstrin
+              photo: 'http://example.com'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            properties: {}
+      tags:
+        - Ученики
+      summary: Просмотр отдельного репетитора
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /user/lesson/number/:
+    get:
+      operationId: user_lesson_number_list
+      description: |-
+        <p>
+        Возвращает количество уроков для пользователя (как репетитора так и для ученика), в которых он учитывается. Эндпоинт доступен для всех авторизованных пользователей. 
+        </p>
+        <p>
+        Есть возможность фильтрации данных по датам, учителям (для учеников), по ученикам (для учителей) и предметам, по которым назначаются уроки.
+        </p>
+        <p>
+        Есть также возможность выбора типа группировки по выбранным параметрам. По умолчанию это дата, но также можно группировать по предмету, статусу, учителям (для учеников) и ученикам (для учителей)
+        </p>  
+      parameters:
+        - name: teacher
+          in: query
+          required: false
+          type: string
+          description: 'идентификатор пользователя-учителя, по которому необходимо осуществить фильтрацию'
+        - name: student
+          in: query
+          description: 'идентификатор фиктивного ученика, по которому необходимо осуществить фильтрацию'
+          required: false
+          type: string
+        - name: date
+          in: query
+          description: 'дата, по которой необходимо осуществить фильтрацию'
+          required: false
+          type: string
+        - name: subject
+          in: query
+          description: 'идентификатор предмета, по которому нужно осуществить фильтрацию'
+          required: false
+          type: string
+        - type: string
+          in: query
+          name: group by
+          description: 'тип группировки, по умолчанию дата'
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                lessons:
+                  - date: '2023-04-25'
+                    count: 1
+                  - date: '2023-04-21'
+                    count: 2
+            properties:
+              lessons:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    param:
+                      type: string
+                      x-stoplight:
+                        id: 50jrjpgqt9zbx
+                      description: 'Параметр по которому происходила фильтрация, по умолчанию это дата, но также может быть предмет, учник или учитель'
+                    count:
+                      type: integer
+                      description: Количество уроков
+          examples:
+            Группировка по дате(?group_by=date):
+              lessons:
+                - date: '2023-04-25'
+                  count: 1
+                - date: '2023-04-21'
+                  count: 2
+            Группировка по предметам(?group_by=subject):
+              lessons:
+                - title: История
+                  count: 3
+            Группировка по ученикам (?group_by=student):
+              lessons:
+                - full_name: Фамилия имя ученика
+                  count: 3
+            Группировка по учителям (?group_by=teacher):
+              lessons:
+                - full_name: Фамилия имя учителя
+                  count: 3
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      summary: Получение количества уроков
+      tags:
+        - Репетиторы
+        - Ученики
+    parameters: []
+  /user/lesson/list/:
+    get:
+      operationId: user_lesson_list_list
+      description: |-
+        Возвращает список уроков с пагинацией и
+        возможностью фильтрации
+      parameters:
+        - name: teacher
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: student
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: date
+          in: query
+          description: ''
+          required: false
+          type: string
+        - name: subject
+          in: query
+          description: ''
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+    post:
+      operationId: user_lesson_list_create
+      description: |-
+        Возвращает список уроков с пагинацией и
+        возможностью фильтрации
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - user
+    parameters: []
+  '/student/lesson/{id}/':
+    get:
+      operationId: student_lesson_read
+      description: |-
+        Возвращает конкретный урок для ученика,
+        имеется только возможность чтения
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/StudentDetailLesson'
+      tags:
+        - student
+      summary: ''
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this Урок.
+        required: true
+        type: integer
+  /teacher/lesson/:
+    get:
+      operationId: teacher_lesson_list
+      description: |-
+        Возвращает конкретный урок
+        как для учителей, только учитель имеет право
+        создавать, редактировать и удалять урок
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TeacherDetailLesson'
+      tags:
+        - teacher
+    parameters: []
+  '/teacher/lesson/{id}/':
+    get:
+      operationId: teacher_lesson_read
+      description: |-
+        Возвращает конкретный урок
+        как для учителей, только учитель имеет право
+        создавать, редактировать и удалять урок
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+      tags:
+        - teacher
+    patch:
+      operationId: teacher_lesson_partial_update
+      description: |-
+        Возвращает конкретный урок
+        как для учителей, только учитель имеет право
+        создавать, редактировать и удалять урок
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+      tags:
+        - teacher
+    delete:
+      operationId: teacher_lesson_delete
+      description: |-
+        Возвращает конкретный урок
+        как для учителей, только учитель имеет право
+        создавать, редактировать и удалять урок
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - teacher
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this Урок.
+        required: true
+        type: integer
   /materials/:
     get:
       operationId: materials_list
@@ -897,174 +1237,6 @@ paths:
         in: path
         required: true
         type: string
-  '/student/lesson/{id}/':
-    get:
-      operationId: student_lesson_read
-      description: |-
-        Возвращает конкретный урок для ученика,
-        имеется только возможность чтения
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/StudentDetailLesson'
-      tags:
-        - student
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this Урок.
-        required: true
-        type: integer
-  /teacher/lesson/:
-    get:
-      operationId: teacher_lesson_list
-      description: |-
-        Возвращает конкретный урок
-        как для учителей, только учитель имеет право
-        создавать, редактировать и удалять урок
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/TeacherDetailLesson'
-      tags:
-        - teacher
-    parameters: []
-  '/teacher/lesson/{id}/':
-    get:
-      operationId: teacher_lesson_read
-      description: |-
-        Возвращает конкретный урок
-        как для учителей, только учитель имеет право
-        создавать, редактировать и удалять урок
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/TeacherDetailLesson'
-      tags:
-        - teacher
-    patch:
-      operationId: teacher_lesson_partial_update
-      description: |-
-        Возвращает конкретный урок
-        как для учителей, только учитель имеет право
-        создавать, редактировать и удалять урок
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/TeacherDetailLesson'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/TeacherDetailLesson'
-      tags:
-        - teacher
-    delete:
-      operationId: teacher_lesson_delete
-      description: |-
-        Возвращает конкретный урок
-        как для учителей, только учитель имеет право
-        создавать, редактировать и удалять урок
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - teacher
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this Урок.
-        required: true
-        type: integer
-  /user/lesson/list/:
-    get:
-      operationId: user_lesson_list_list
-      description: |-
-        Возвращает список уроков с пагинацией и
-        возможностью фильтрации
-      parameters:
-        - name: teacher
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: student
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: date
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: subject
-          in: query
-          description: ''
-          required: false
-          type: string
-      responses:
-        '200':
-          description: ''
-      tags:
-        - user
-    post:
-      operationId: user_lesson_list_create
-      description: |-
-        Возвращает список уроков с пагинацией и
-        возможностью фильтрации
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - user
-    parameters: []
-  /user/lesson/number/:
-    get:
-      operationId: user_lesson_number_list
-      description: |-
-        Отфильтрованные данные группируются по выбранному параметру,
-        по умолчанию это дата, но также имеется возможность по
-        предметам, учителям для учеников и ученикам для учителей.
-      parameters:
-        - name: teacher
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: student
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: date
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: subject
-          in: query
-          description: ''
-          required: false
-          type: string
-      responses:
-        '200':
-          description: ''
-      tags:
-        - user
-    parameters: []
 definitions:
   TokenObtainPair:
     type: object
@@ -1282,6 +1454,58 @@ definitions:
       - password
       - password2
     x-examples: []
+  StudentTeacher:
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        description: идентификатор учителя
+        readOnly: true
+      first_name:
+        title: Имя
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+        description: имя
+      last_name:
+        title: Фамилия
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+        description: фамилия
+      patronymic_name:
+        title: Отчество
+        type: string
+        pattern: '^([А-ЯЁ]{1}[а-яё]{1,49})|([A-Z]{1}[a-z]{1,49})$'
+        maxLength: 50
+        minLength: 2
+        description: отчество
+      email:
+        title: Электронная почта
+        type: string
+        format: email
+        maxLength: 254
+        minLength: 7
+        description: почта
+      phone:
+        title: Телефон
+        type: string
+        pattern: '^((\+7|7|8)[0-9]{10,12})$'
+        maxLength: 13
+        minLength: 11
+        description: телефон
+        x-nullable: true
+      photo:
+        title: Фотография
+        type: string
+        format: uri
+        description: фото
+        x-nullable: true
+        readOnly: true
   StudentDetailLesson:
     required:
       - date
@@ -1399,6 +1623,14 @@ definitions:
     type: object
     x-stoplight:
       id: 6uxqzs4lsznkt
+    x-examples:
+      '':
+        id: 0
+        last_name: string
+        first_name: string
+        patronymic_name: string
+        phone: string
+        email: user@example.com
     properties:
       id:
         title: ID
@@ -1452,19 +1684,17 @@ definitions:
           - awaiting
           - related
         description: Привязка
+      photo:
+        type: string
+        x-stoplight:
+          id: vjs21m53o90en
+        format: uri
+        x-nullable: true
+        readOnly: true
     required:
       - last_name
       - first_name
       - email
-    x-examples:
-      '':
-        id: 0
-        last_name: string
-        first_name: string
-        patronymic_name: string
-        phone: string
-        email: user@example.com
-    title: ''
   TeacherStudentDetail - copy 2:
     type: object
     x-stoplight:
@@ -1572,6 +1802,14 @@ definitions:
         maxLength: 254
         minLength: 7
         description: Почта
+      photo:
+        type: string
+        x-stoplight:
+          id: pxni62qgxl4s7
+        format: uri
+        description: фото
+        x-nullable: true
+        readOnly: true
     required:
       - last_name
       - first_name
