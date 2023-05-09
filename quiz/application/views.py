@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.decorators import api_view
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -61,7 +61,7 @@ class QuizList(generics.ListCreateAPIView):
     по именам авторов и категорий. Создание квиза от автора.
     """
     serializer_class = QuizSerializer
-    filterset_class = QuizFilter
+    filterset_fields = ('category', 'author')
     http_method_names = ('post', 'get')
 
     def get_queryset(self):
@@ -89,7 +89,11 @@ class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class QuizQuestions(generics.ListCreateAPIView):
     """
-    Получение списка вопросов и создание вопроса
+    Создание вопроса для квиза.
+    Получение списка вопросов вместе с заголовком квиза,
+    к которому принадлежит вопрос и ответами к вопросу.
+    Есть также возможность фильтрации вопросов
+    по квизам, авторам и активным вопросам
     """
     serializer_class = QuestionSerializer
     filterset_fields = ('quiz', 'author', 'is_active')
@@ -104,7 +108,7 @@ class QuizQuestions(generics.ListCreateAPIView):
 class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Обновление, удаление, чтение конкретного вопроса,
-    доступно только для автора самого вопроса
+    доступно только для автора самого вопроса (кроме чтения)
     """
     serializer_class = QuestionSerializer
     queryset = Questions.objects.prefetch_related(
@@ -114,7 +118,7 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class RandomQuestion(generics.ListAPIView):
-    """Получение случайного вопроса"""
+    """Получение случайного вопроса из квиза"""
     serializer_class = QuestionSerializer
     lookup_field = 'quiz_id'
     http_method_names = ['get']

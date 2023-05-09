@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    restart: always
+    container_name: quiz
+
+  db:
+    image: postgres:13.0-alpine
+    restart: always
+    volumes:
+      - db_data:/core/quiz/
+    env_file:
+      - ./.env
+    container_name: postgres
+
+volumes:
+  db_data:
