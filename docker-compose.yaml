@@ -1,22 +1,37 @@
 version: "3.9"
 
 services:
-  web:
+  db:
+    image: postgres:13.0-alpine
+    container_name: db
+    restart: always
+    volumes:
+      - db_data:/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-postgres}
+      POSTGRES_HOST: ${DB_HOST:-db}
+    networks:
+      - postgres
+
+  app:
     build:
       context: .
+    container_name: app
+    depends_on:
+      - db
     ports:
       - "8000:8000"
     restart: always
-    container_name: quiz
+    networks:
+      - postgres
 
-  db:
-    image: postgres:13.0-alpine
-    restart: always
-    volumes:
-      - db_data:/core/quiz/
-    env_file:
-      - ./.env
-    container_name: postgres
+networks:
+  postgres:
+    driver: bridge
 
 volumes:
   db_data:

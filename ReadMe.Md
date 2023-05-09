@@ -43,8 +43,8 @@ sudo docker-compose up -d
 
 После запуска контейнеров необходимо применить миграции и создать суперпользователя:
 ```bash
-sudo docker-compose exec backendpython manage.py migrate
-sudo docker-compose exec backend python manage.py createsuperuser
+sudo docker-compose exec app manage.py migrate
+sudo docker-compose exec app python manage.py createsuperuser
 ```
 
 
