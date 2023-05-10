@@ -30,9 +30,13 @@
 ## 🛠️ Установка и запуск
 
 Для запуска приложения должен быть установлен [git](https://git-scm.com/) и [docker](https://www.docker.com/).
-
 ```bash
-git clone git@github.com:orbins/Quiz-API
+git clone https://github.com/orbins/Quiz-API.git
+```
+
+Затем перейти в папку проекта
+```bash
+cd Quiz-Api
 ```
 
 Собрать и запустить контейнеры
@@ -43,7 +47,7 @@ sudo docker-compose up -d
 
 После запуска контейнеров необходимо применить миграции и создать суперпользователя:
 ```bash
-sudo docker-compose exec app manage.py migrate
+sudo docker-compose exec app python manage.py migrate
 sudo docker-compose exec app python manage.py createsuperuser
 ```
 
