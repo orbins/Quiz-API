@@ -928,7 +928,7 @@ paths:
         Есть возможность фильтрации данных по датам, учителям (для учеников), по ученикам (для учителей) и предметам, по которым назначаются уроки.
         </p>
         <p>
-        Есть также возможность выбора типа группировки по выбранным параметрам. По умолчанию это дата, но также можно группировать по предмету, статусу, учителям (для учеников) и ученикам (для учителей)
+        Есть также возможность выбора типа группировки по выбранным параметрам. По умолчанию это дата, это значит, что без указания типа группировки будут выводиться 2 значения (дата и количество уроков на эту дату) но также можно группировать по предмету, статусу, учителям (для учеников) и ученикам (для учителей)
         </p>  
       parameters:
         - name: teacher
@@ -941,11 +941,6 @@ paths:
           description: 'идентификатор фиктивного ученика, по которому необходимо осуществить фильтрацию'
           required: false
           type: string
-        - name: date
-          in: query
-          description: 'дата, по которой необходимо осуществить фильтрацию'
-          required: false
-          type: string
         - name: subject
           in: query
           description: 'идентификатор предмета, по которому нужно осуществить фильтрацию'
@@ -955,6 +950,14 @@ paths:
           in: query
           name: group by
           description: 'тип группировки, по умолчанию дата'
+        - type: string
+          in: query
+          name: date_before
+          description: 'дата, по которую необходимо осуществить фильтрацию '
+        - type: string
+          in: query
+          name: date_after
+          description: 'дата, с которой необходимо осуществить фильтрацию '
       responses:
         '200':
           description: ''
@@ -982,6 +985,28 @@ paths:
                       type: integer
                       description: Количество уроков
           examples:
+            Фильтрация по репетитору (?teacher=id репетитора):
+              lessons:
+                - date: '2023-04-21'
+                  count: 2
+                - date: '2023-04-25'
+                  count: 1
+            Фильтрация по студенту (?student=id студента):
+              lessons:
+                - date: '2023-04-21'
+                  count: 2
+                - date: '2023-04-25'
+                  count: 1
+            Фильтрация по предмету (?subject=id предмета):
+              lessons:
+                - date: '2023-04-21'
+                  count: 2
+                - date: '2023-04-25'
+                  count: 1
+            Фильтрация по дате(?date_after=21.04.2023&date_before=22.04.2023):
+              lessons:
+                - date: '2023-04-21'
+                  count: 2
             Группировка по дате(?group_by=date):
               lessons:
                 - date: '2023-04-25'
@@ -1013,85 +1038,152 @@ paths:
     get:
       operationId: user_lesson_list_list
       description: |-
-        Возвращает список уроков с пагинацией и
-        возможностью фильтрации
+        <p>
+        Возвращает уроки для пользователя (как репетитора так и для ученика), в которых он учитывается. Эндпоинт доступен для всех авторизованных пользователей. 
+        </p>
+        <p>
+        Есть возможность фильтрации данных по датам, учителям (для учеников), по ученикам (для учителей) и предметам, по которым назначаются уроки.
+        </p>
       parameters:
         - name: teacher
           in: query
-          description: ''
           required: false
           type: string
+          description: 'идентификатор пользователя-учителя, по которому необходимо осуществить фильтрацию'
         - name: student
           in: query
-          description: ''
-          required: false
-          type: string
-        - name: date
-          in: query
-          description: ''
+          description: 'идентификатор фиктивного ученика, по которому необходимо осуществить фильтрацию'
           required: false
           type: string
         - name: subject
           in: query
-          description: ''
+          description: 'идентификатор предмета, по которому нужно осуществить фильтрацию'
           required: false
           type: string
+        - type: string
+          in: query
+          name: date_after
+          description: 'дата, с которой необходимо осуществить фильтрацию '
+        - type: string
+          in: query
+          name: date_before
+          description: 'дата, по которую необходимо осуществить фильтрацию '
       responses:
         '200':
           description: ''
+          schema:
+            type: array
+            x-examples:
+              Example 1:
+                - id: 4
+                  date: '2023-04-21'
+                  start_time: '05:00:00'
+                  end_time: '07:02:00'
+                  status: planned
+                  homework: null
+                  teacher: Lacostovich Novak
+                - id: 2
+                  date: '2023-04-21'
+                  start_time: '13:10:00'
+                  end_time: '15:10:00'
+                  status: planned
+                  homework: null
+                  teacher: Lacostovich Novak
+                - id: 1
+                  date: '2023-04-25'
+                  start_time: '12:50:00'
+                  end_time: '15:43:00'
+                  status: planned
+                  homework: null
+                  teacher: Lacostovich Novak
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: идентификатор урока
+                date:
+                  type: string
+                  description: дата проведения урока
+                start_time:
+                  type: string
+                  description: время начала урока
+                end_time:
+                  type: string
+                  description: время окончания урока
+                status:
+                  type: string
+                  description: статус урока
+                homework:
+                  type: boolean
+                  description: наличие дз
+                  x-nullable: true
+                teacher or student:
+                  type: string
+                  x-stoplight:
+                    id: 24dl13j2rkwaj
+                  description: Фамилия и имя преподавателя для ученика или фамилия и имя ученика для преподавателя
+          examples:
+            Список уроков для ученика:
+              - id: 2
+                date: '2023-04-21'
+                start_time: '13:10:00'
+                end_time: '15:10:00'
+                status: planned
+                homework: null
+                teacher: Пупкин Василий
+              - id: 1
+                date: '2023-04-25'
+                start_time: '12:50:00'
+                end_time: '15:43:00'
+                status: planned
+                homework: null
+                teacher: Пупкин Василий
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      summary: Получение списка уроков
       tags:
-        - user
+        - Ученики
+        - Репетиторы
     post:
       operationId: user_lesson_list_create
       description: |-
-        Возвращает список уроков с пагинацией и
-        возможностью фильтрации
+        <p>
+        Создание урока для пользователя (как репетитора так и для ученика), в которых он учитывается. Эндпоинт доступен для всех авторизованных пользователей. 
+        </p>
       parameters: []
       responses:
         '201':
           description: ''
       tags:
-        - user
+        - Репетиторы
+      summary: Создание урока
     parameters: []
   '/student/lesson/{id}/':
     get:
       operationId: student_lesson_read
-      description: |-
-        Возвращает конкретный урок для ученика,
-        имеется только возможность чтения
+      description: 'Возвращает данные о кокретном уроке, имеется только возможность чтения. Эндпоинт доступен только для пользователя-ученика, который задействован в уроке.'
       parameters: []
       responses:
         '200':
           description: ''
           schema:
             $ref: '#/definitions/StudentDetailLesson'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      summary: Получение конкретного урока
       tags:
-        - student
-      summary: ''
+        - Ученики
     parameters:
       - name: id
         in: path
         description: A unique integer value identifying this Урок.
         required: true
         type: integer
-  /teacher/lesson/:
-    get:
-      operationId: teacher_lesson_list
-      description: |-
-        Возвращает конкретный урок
-        как для учителей, только учитель имеет право
-        создавать, редактировать и удалять урок
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/TeacherDetailLesson'
-      tags:
-        - teacher
-    parameters: []
   '/teacher/lesson/{id}/':
     get:
       operationId: teacher_lesson_read
@@ -1507,51 +1599,74 @@ definitions:
         x-nullable: true
         readOnly: true
   StudentDetailLesson:
-    required:
-      - date
-      - start_time
-      - end_time
     type: object
+    x-stoplight:
+      id: 6nlhu77clz50r
     properties:
       id:
         title: ID
         type: integer
+        description: |
+          Идентификатор урока
         readOnly: true
       date:
         title: Дата
         type: string
         format: date
+        description: Дата
       start_time:
         title: Начало урока
         type: string
+        description: Время начала
       end_time:
         title: Конец урока
         type: string
+        description: Время окончания
       status:
         title: Status
         type: string
+        description: Статус
         readOnly: true
       homework:
         title: Homework
         type: boolean
+        description: Наличие дз
         readOnly: true
       teacher:
         title: Teacher
         type: string
+        description: Репетитор
         readOnly: true
       subject_title:
         title: Subject title
         type: string
+        description: Предмет
         readOnly: true
       topic:
         title: Тема урока
         type: string
         maxLength: 40
+        description: Тема
       comment:
         title: Комментарий
         type: string
-    x-stoplight:
-      id: 6nlhu77clz50r
+        description: Комментарий
+    required:
+      - date
+      - start_time
+      - end_time
+      - teacher
+    x-examples:
+      - id: 1
+        date: '2019-08-24'
+        start_time: '12:00'
+        end_time: '14:00'
+        status: planned
+        homework: true
+        teacher: string
+        subject_title: string
+        topic: string
+        comment: string
   Subject:
     required:
       - title
