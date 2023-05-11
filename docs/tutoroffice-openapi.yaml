@@ -1105,25 +1105,43 @@ paths:
                 date:
                   type: string
                   description: дата проведения урока
+                  format: date
                 start_time:
                   type: string
                   description: время начала урока
+                  format: time
                 end_time:
                   type: string
                   description: время окончания урока
+                  format: time
                 status:
                   type: string
-                  description: статус урока
+                  description: 'статус урока, может быть: запланирован(planned)/проведен(done)/отменён(canceled)'
                 homework:
                   type: boolean
                   description: наличие дз
                   x-nullable: true
-                teacher or student:
+                teacher or student_full_name:
                   type: string
                   x-stoplight:
                     id: 24dl13j2rkwaj
                   description: Фамилия и имя преподавателя для ученика или фамилия и имя ученика для преподавателя
           examples:
+            Список уроков для репетитора:
+              - id: 2
+                date: '2023-04-21'
+                start_time: '13:10:00'
+                end_time: '15:10:00'
+                status: planned
+                homework: null
+                student_full_name: Сиоров Сергей
+              - id: 1
+                date: '2023-04-25'
+                start_time: '12:50:00'
+                end_time: '15:43:00'
+                status: planned
+                homework: null
+                student_full_name: Сиоров Сергей
             Список уроков для ученика:
               - id: 2
                 date: '2023-04-21'
@@ -1151,26 +1169,217 @@ paths:
       operationId: user_lesson_list_create
       description: |-
         <p>
-        Создание урока для пользователя (как репетитора так и для ученика), в которых он учитывается. Эндпоинт доступен для всех авторизованных пользователей. 
+        Создание урока, доступно только для пользователей-репетиторов.
+        Урок не может создаваться на дату быть раньше сегодняшней, а также время окончание урока должно быть позже времени начала урока.
         </p>
-      parameters: []
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                student: 1
+                subject: 1
+                start_time: '12:00'
+                end_time: '14:00'
+                topic: Тема урока
+                comment: Комментарий к уроку
+                date: '2023-06-01'
+            properties:
+              student:
+                type: integer
+                description: идентификатор студента
+              subject:
+                type: integer
+                description: идентификатор предмета
+              date:
+                type: string
+                description: дата
+                format: date
+              start_time:
+                type: string
+                description: время начала урока
+                format: time
+              end_time:
+                type: string
+                description: время окончания урока
+                format: time
+              topic:
+                type: string
+                description: тема урока
+              comment:
+                type: string
+                description: комментарий к уроку
+            required:
+              - student
+              - subject
+              - date
+              - start_time
+              - end_time
+          description: ''
+          x-examples:
+            Создание урока репетитором:
+              student: 1
+              start_time: '12:00'
+              end_time: '14:00'
+              topic: Тема урока
+              comment: Комментарий к уроку
+              date: '2023-06-1'
       responses:
         '201':
           description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 7
+                date: '2023-06-01'
+                start_time: '12:00:00'
+                end_time: '14:00:00'
+                status: planned
+                homework: null
+                student_full_name: Учеников Andrew
+            properties:
+              id:
+                type: integer
+              date:
+                type: string
+                format: date
+              start_time:
+                type: string
+                format: time
+              end_time:
+                type: string
+                format: time
+              status:
+                type: string
+              homework:
+                type: boolean
+                x-nullable: true
+              student_full_name:
+                type: string
+          examples:
+            Урок создан:
+              id: 1
+              date: '2023-06-01'
+              start_time: '12:00:00'
+              end_time: '14:00:00'
+              status: planned
+              homework: null
+              student_full_name: Пупкин Вася
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
       summary: Создание урока
     parameters: []
+  '/teacher/lesson/{id}/':
+    get:
+      operationId: teacher_lesson_read
+      description: 'Возвращает данные о конкретном уроке, имеется возможность чтения, обновления и удаления. Эндпоинт доступен только для пользователя-репетитора, который задействован в уроке.'
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+          examples:
+            Урок для репетитора:
+              id: 1
+              date: '2023-04-25'
+              start_time: '12:50:00'
+              end_time: '15:43:00'
+              status: planned
+              homework: null
+              student_full_name: Сидоров Сергей
+              subject_title: История
+              topic: Тема урока
+              comment: Комментарий к уроку
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      summary: Получение конкретного урока
+    patch:
+      operationId: teacher_lesson_partial_update
+      description: 'Изменение урока, эндпоинт досутпен только для пользователя-репетитора, который задействован в этом уроке. Время начала урока не долэно быть больше времени окончания, а дата урока должна быть не раньше сегодняшней.'
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+          x-examples:
+            Изменение урока:
+              date: '2023-04-25'
+              start_time: '12:50:00'
+              end_time: '15:43:00'
+              subject: 1
+              topic: Тема урока
+              comment: Комментарий к уроку
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TeacherDetailLesson'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - teacher
+      summary: Изменение урока
+    delete:
+      operationId: teacher_lesson_delete
+      description: 'Удаление урока, эндпоинт досутпен только для пользователя-репетитора, который задействован в этом уроке'
+      parameters: []
+      responses:
+        '204':
+          description: ''
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - teacher
+      summary: Удаление урока
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this Урок.
+        required: true
+        type: integer
   '/student/lesson/{id}/':
     get:
-      operationId: student_lesson_read
-      description: 'Возвращает данные о кокретном уроке, имеется только возможность чтения. Эндпоинт доступен только для пользователя-ученика, который задействован в уроке.'
+      operationId: ''
+      description: 'Возвращает данные о конкретном уроке, имеется только возможность чтения. Эндпоинт доступен только для пользователя-ученика, который задействован в уроке.'
       parameters: []
       responses:
         '200':
           description: ''
           schema:
             $ref: '#/definitions/StudentDetailLesson'
+          examples:
+            Урок для ученика:
+              id: 1
+              date: '2023-04-25'
+              start_time: '12:50:00'
+              end_time: '15:43:00'
+              status: planned
+              homework: null
+              teacher: Сидоров Сергей
+              subject_title: История
+              topic: Тема
+              comment: Комментарий
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -1178,58 +1387,6 @@ paths:
       summary: Получение конкретного урока
       tags:
         - Ученики
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this Урок.
-        required: true
-        type: integer
-  '/teacher/lesson/{id}/':
-    get:
-      operationId: teacher_lesson_read
-      description: |-
-        Возвращает конкретный урок
-        как для учителей, только учитель имеет право
-        создавать, редактировать и удалять урок
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/TeacherDetailLesson'
-      tags:
-        - teacher
-    patch:
-      operationId: teacher_lesson_partial_update
-      description: |-
-        Возвращает конкретный урок
-        как для учителей, только учитель имеет право
-        создавать, редактировать и удалять урок
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/TeacherDetailLesson'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/TeacherDetailLesson'
-      tags:
-        - teacher
-    delete:
-      operationId: teacher_lesson_delete
-      description: |-
-        Возвращает конкретный урок
-        как для учителей, только учитель имеет право
-        создавать, редактировать и удалять урок
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - teacher
     parameters:
       - name: id
         in: path
@@ -1602,6 +1759,7 @@ definitions:
     type: object
     x-stoplight:
       id: 6nlhu77clz50r
+    x-examples: {}
     properties:
       id:
         title: ID
@@ -1618,10 +1776,12 @@ definitions:
         title: Начало урока
         type: string
         description: Время начала
+        format: time
       end_time:
         title: Конец урока
         type: string
         description: Время окончания
+        format: time
       status:
         title: Status
         type: string
@@ -1631,6 +1791,7 @@ definitions:
         title: Homework
         type: boolean
         description: Наличие дз
+        x-nullable: true
         readOnly: true
       teacher:
         title: Teacher
@@ -1656,17 +1817,6 @@ definitions:
       - start_time
       - end_time
       - teacher
-    x-examples:
-      - id: 1
-        date: '2019-08-24'
-        start_time: '12:00'
-        end_time: '14:00'
-        status: planned
-        homework: true
-        teacher: string
-        subject_title: string
-        topic: string
-        comment: string
   Subject:
     required:
       - title
@@ -1684,13 +1834,17 @@ definitions:
     x-stoplight:
       id: 6idr3p2j2cxn3
   TeacherDetailLesson:
-    required:
-      - date
-      - start_time
-      - end_time
-      - status
-      - subject
     type: object
+    x-stoplight:
+      id: hldvfkqomiu91
+    x-examples:
+      Изменение информации об уроке:
+        date: '2023-04-25'
+        start_time: '12:50:00'
+        end_time: '15:43:00'
+        subject: 1
+        topic: Тема урока
+        comment: Комментарий к уроку
     properties:
       id:
         title: ID
@@ -1710,9 +1864,11 @@ definitions:
         title: Status
         type: string
         minLength: 1
+        readOnly: true
       homework:
         title: Homework
         type: boolean
+        x-nullable: true
         readOnly: true
       student_full_name:
         title: Student full name
@@ -1732,8 +1888,12 @@ definitions:
       comment:
         title: Комментарий
         type: string
-    x-stoplight:
-      id: hldvfkqomiu91
+    required:
+      - date
+      - start_time
+      - end_time
+      - status
+      - subject
   TeacherStudentDetail - copy:
     type: object
     x-stoplight:
