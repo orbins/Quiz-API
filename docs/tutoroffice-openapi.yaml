@@ -1335,9 +1335,9 @@ paths:
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
-      tags:
-        - teacher
       summary: Изменение урока
+      tags:
+        - Репетиторы
     delete:
       operationId: teacher_lesson_delete
       description: 'Удаление урока, эндпоинт досутпен только для пользователя-репетитора, который задействован в этом уроке'
@@ -1349,9 +1349,9 @@ paths:
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
-      tags:
-        - teacher
       summary: Удаление урока
+      tags:
+        - Репетиторы
     parameters:
       - name: id
         in: path
