@@ -549,12 +549,14 @@ paths:
                 patronymic_name: Сергеевич
                 phone: '89187651215'
                 email: example@example.ru
+                photo: 'http://example.com'
               - id: 2
                 last_name: Смирнов
                 first_name: Андрей
                 patronymic_name: Сергеевич
                 phone: '83257689421'
                 email: user@user.com
+                photo: null
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -595,6 +597,7 @@ paths:
               patronymic_name: string
               phone: string
               email: user@example.com
+              photo: null
         '400':
           $ref: '#/responses/ValidationError'
         '401':
@@ -682,6 +685,7 @@ paths:
               patronymic_name: string
               phone: string
               email: user@example.com
+              photo: 'http://example.com'
               comment: string
               bind: unrelated
         '401':
@@ -2029,13 +2033,14 @@ definitions:
     x-stoplight:
       id: 3d4ac9ccbdj43
     x-examples:
-      '':
+      Example 1:
         id: 0
         last_name: string
         first_name: string
         patronymic_name: string
         phone: string
         email: user@example.com
+        photo: 'http://example.com'
     properties:
       id:
         title: ID
@@ -2089,6 +2094,7 @@ definitions:
       - last_name
       - first_name
       - email
+    description: ''
   UserSubject:
     type: object
     x-stoplight:
