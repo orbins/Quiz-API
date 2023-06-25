@@ -380,7 +380,7 @@ paths:
   /subjects:
     get:
       operationId: subjects_list
-      description: 'Получение <b>всех</b> предметов, доступно только для <b>репетиторов</b>. Возврщается имя предмета и его id.'
+      description: 'Получение <b>всех</b> предметов, доступно только для <b>репетиторов</b>. Возврщается имя предмета и его id. Имеется пагинация (разбивка данных по страницам).'
       parameters:
         - type: string
           in: query
@@ -409,9 +409,13 @@ paths:
                 description: Количество записей
               next:
                 description: Следующая страница
+                type: string
+                format: uri
                 x-nullable: true
               previous:
                 description: Предыдущая страница
+                type: string
+                format: uri
                 x-nullable: true
               results:
                 type: array
@@ -445,7 +449,7 @@ paths:
   /teacher/subjects:
     get:
       operationId: teacher_subjects_list
-      description: 'Получение предметов текущего пользователя-репетитора. Эндпоинт доступен для всех авторизованных пользователей, которые являются репетиторами.'
+      description: 'Получение предметов текущего пользователя-репетитора. Эндпоинт доступен для всех авторизованных пользователей, которые являются репетиторами. Имеется пагинация (разбивка данных по страницам).'
       parameters:
         - type: string
           in: query
@@ -473,9 +477,13 @@ paths:
                 description: Количество записей
               next:
                 description: Следующая страница
+                type: string
+                format: uri
                 x-nullable: true
               previous:
                 description: Предыдущая страница
+                type: string
+                format: uri
                 x-nullable: true
               results:
                 type: array
@@ -615,7 +623,7 @@ paths:
         <p>
         В нашем проекте каждый репетитор имеет возможность создавать своих собственных учеников и использовать их для организации своего рабочего процесса, при этом нет необходимости в регистрации реального пользователя в качестве ученика. Это реализуется за счёт механизма создания так называемых <b>фиктивных</b> учеников. Это как раз таки и есть те самые ученики, которых создаёт репетитор. Для этого ему достаточно указать ФИО ученика и что важно <b>верный</b> адрес электронной почты, чтобы в дальнейшем этого фиктивного ученика можно было связать с реальным пользователем-учеником, отправив ему запрос на почту. Нет, ничего страшного в том, что репетитор может указать неверный или несуществующий адрес электронной почты, его всегда можно поменять, пока пользователь-ученик не привязан или же отвязать пользователя-ученик. 
         </p>
-        Получение списка всех учеников репетитора. Эндпоинт доступен только для пользователей-репетиторов.
+        Получение списка всех учеников репетитора. Эндпоинт доступен только для пользователей-репетиторов. Имеется пагинация (разбивка данных по страницам).
       parameters:
         - type: string
           in: query
@@ -659,9 +667,13 @@ paths:
                 description: Кол-во записей
               next:
                 description: Следующая страница
+                type: string
+                format: uri
                 x-nullable: true
               previous:
                 description: Предыдущая страница
+                type: string
+                format: uri
                 x-nullable: true
               results:
                 type: array
@@ -854,7 +866,7 @@ paths:
           $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
-      description: 'Получение полной информации о конкретном фиктивном ученике репетитора. Эндпоинт доступен только для пользователя-репетитора, который создал ученика.'
+      description: 'Получение полной информации о конкретном фиктивном ученике репетитора. Эндпоинт доступен только для пользователя-репетитора, который создал ученика. '
   '/relate/student/{id}/':
     post:
       operationId: relate_student_create
@@ -1009,7 +1021,7 @@ paths:
   /student/teachers/:
     get:
       operationId: student_teachers_list
-      description: Просмотр списка репетиторов ученика. Эндпоинт доступен только для пользователей-учеников.
+      description: Просмотр списка репетиторов ученика. Эндпоинт доступен только для пользователей-учеников. Имеется пагинация (разбивка данных по страницам).
       parameters:
         - type: string
           in: query
@@ -1019,25 +1031,65 @@ paths:
         '200':
           description: ''
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/StudentTeacher'
+            type: object
+            x-examples:
+              Example 1:
+                count: 1
+                next: null
+                previous: null
+                results:
+                  - id: 69c2eb05-89ef-48c6-b0d3-a2277b67b16a
+                    first_name: Novak
+                    last_name: Lacostovich
+                    patronymic_name: Сергеевич
+                    photo: null
+                    subjects:
+                      - Computer Science
+                      - История
+                      - Математика
+            properties:
+              count:
+                type: integer
+              next:
+                x-nullable: true
+              previous:
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    first_name:
+                      type: string
+                    last_name:
+                      type: string
+                    patronymic_name:
+                      type: string
+                    photo:
+                      type: string
+                      format: uri
+                      x-nullable: true
+                    subjects:
+                      type: array
+                      items:
+                        type: string
           examples:
             Список репетиторов ученика:
-              - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                first_name: string
-                last_name: string
-                patronymic_name: string
-                email: user@example.com
-                phone: stringstrin
-                photo: 'http://example.com'
-              - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                first_name: string
-                last_name: string
-                patronymic_name: string
-                email: user@example.com
-                phone: stringstrin
-                photo: 'http://example.com'
+              count: 1
+              next: null
+              previous: null
+              results:
+                - id: 69c2eb05-89ef-48c6-b0d3-a2277b67b16a
+                  first_name: string
+                  last_name: string
+                  patronymic_name: string
+                  photo: null
+                  subjects:
+                    - Computer Science
+                    - История
+                    - Математика
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -1065,6 +1117,10 @@ paths:
               email: user@example.com
               phone: stringstrin
               photo: 'http://example.com'
+              subjects:
+                - Computer Science
+                - История
+                - Математика
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -1920,6 +1976,14 @@ definitions:
         description: фото
         x-nullable: true
         readOnly: true
+      subjects:
+        type: array
+        x-stoplight:
+          id: khpt7pnexldwm
+        items:
+          x-stoplight:
+            id: 62w9zsw39tjpx
+          type: string
   StudentDetailLesson:
     type: object
     x-stoplight:
