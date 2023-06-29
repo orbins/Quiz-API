@@ -712,7 +712,7 @@ paths:
                   first_name: string
                   patronymic_name: string
                   level: string
-                  photo: null
+                  photo: 'http://example.com'
                 - id: 62
                   last_name: string
                   first_name: string
@@ -724,7 +724,7 @@ paths:
                   first_name: string
                   patronymic_name: string
                   level: string
-                  photo: null
+                  photo: 'http://example.com'
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -743,7 +743,29 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/TeacherStudentDetail - copy 2'
+            type: object
+            x-examples:
+              Example 1:
+                last_name: string
+                first_name: string
+                patronymic_name: string
+                phone: string
+                email: user@example.com
+                level: string
+            properties:
+              last_name:
+                type: string
+              first_name:
+                type: string
+              patronymic_name:
+                type: string
+              phone:
+                type: string
+                x-nullable: true
+              email:
+                type: string
+              level:
+                type: string
           x-examples:
             Запрос на создание ученика:
               last_name: string
@@ -756,7 +778,30 @@ paths:
         '201':
           description: ''
           schema:
-            $ref: '#/definitions/TeacherStudent - copy'
+            type: object
+            x-examples:
+              Example 1:
+                id: 73
+                last_name: string
+                first_name: string
+                patronymic_name: string
+                level: string
+                photo: null
+            properties:
+              id:
+                type: integer
+              last_name:
+                type: string
+              first_name:
+                type: string
+              patronymic_name:
+                type: string
+              level:
+                type: string
+              photo:
+                type: string
+                format: uri
+                x-nullable: true
           examples:
             Ученик создан успешно:
               id: 0
@@ -784,7 +829,29 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/TeacherStudentDetail - copy 2'
+            type: object
+            x-examples:
+              Example 1:
+                last_name: string
+                first_name: string
+                patronymic_name: string
+                phone: string
+                email: user@example.com
+                level: string
+            properties:
+              last_name:
+                type: string
+              first_name:
+                type: string
+              patronymic_name:
+                type: string
+              phone:
+                type: string
+                x-nullable: true
+              email:
+                type: string
+              level:
+                type: string
           x-examples:
             Изменение данных об ученике:
               last_name: string
@@ -797,7 +864,40 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TeacherStudentDetail - copy'
+            type: object
+            x-examples:
+              Example 1:
+                id: 1
+                last_name: string
+                first_name: string
+                patronymic_name: string
+                level: string
+                photo: null
+                phone: string
+                email: string
+                bind: string
+            properties:
+              id:
+                type: integer
+              last_name:
+                type: string
+              first_name:
+                type: string
+              patronymic_name:
+                type: string
+              level:
+                type: string
+              photo:
+                type: string
+                format: uri
+                x-nullable: true
+              phone:
+                type: string
+                x-nullable: true
+              email:
+                type: string
+              bind:
+                type: string
           examples:
             Измененные данные ученика:
               id: 0
@@ -845,7 +945,39 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TeacherStudentDetail - copy'
+            type: object
+            x-examples:
+              Example 1:
+                id: 0
+                last_name: string
+                first_name: string
+                patronymic_name: string
+                phone: string
+                email: user@example.com
+                photo: 'http://example.com'
+                level: string
+                bind: unrelated
+            properties:
+              id:
+                type: integer
+              last_name:
+                type: string
+              first_name:
+                type: string
+              patronymic_name:
+                type: string
+              phone:
+                type: string
+                x-nullable: true
+              email:
+                type: string
+              photo:
+                type: string
+                x-nullable: true
+              level:
+                type: string
+              bind:
+                type: string
           examples:
             Получение данных об ученике:
               id: 0
@@ -1342,10 +1474,12 @@ paths:
                       type: string
                     status:
                       type: string
+                      readOnly: true
                     teacher or student_full_name:
                       type: string
                       x-stoplight:
                         id: hndymkqq1clbs
+                      readOnly: true
           examples:
             Список уроков для репетитора:
               count: 2
@@ -1507,17 +1641,49 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TeacherDetailLesson'
+            type: object
+            x-examples:
+              Example 1:
+                id: 1
+                date: '2023-04-25'
+                start_time: '12:50:00'
+                end_time: '15:43:00'
+                status: planned
+                student_full_name: Учеников Andrew
+                subject_title: История
+                teacher_comment: ''
+            properties:
+              id:
+                type: integer
+                readOnly: true
+              date:
+                type: string
+              start_time:
+                type: string
+              end_time:
+                type: string
+              status:
+                type: string
+              student_full_name:
+                type: string
+                readOnly: true
+              subject_title:
+                type: string
+                x-nullable: true
+                readOnly: true
+              teacher_comment:
+                type: string
+                description: Комментарий от учителя по уроку
           examples:
             Урок для репетитора:
               id: 1
-              date: '2023-04-25'
+              date: '2023-07-14'
               start_time: '12:50:00'
               end_time: '15:43:00'
               status: planned
-              student_full_name: Сидоров Сергей
-              subject_title: История
-              teacher_comment: Комментарий к уроку
+              student_full_name: Last_Name Firs_Name
+              subject_title: Title
+              teacher_comment: ''
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -1527,26 +1693,86 @@ paths:
       summary: Получение конкретного урока
     patch:
       operationId: teacher_lesson_partial_update
-      description: 'Изменение урока, эндпоинт досутпен только для пользователя-репетитора, который задействован в этом уроке. Время начала урока не долэно быть больше времени окончания, а дата урока должна быть не раньше сегодняшней.'
+      description: 'Изменение урока, эндпоинт досутпен только для пользователя-репетитора, который задействован в этом уроке. Время начала урока не должно быть больше времени окончания, а дата урока должна быть не раньше сегодняшней.'
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/TeacherDetailLesson'
+            type: object
+            x-examples:
+              Example 1:
+                date: string
+                start_time: string
+                end_time: string
+                status: string
+                subject: 1
+                teacher_comment: string
+            properties:
+              date:
+                type: string
+              start_time:
+                type: string
+              end_time:
+                type: string
+              status:
+                type: string
+              subject:
+                type: integer
+                x-nullable: true
+              teacher_comment:
+                type: string
           x-examples:
             Изменение урока:
-              date: '2023-04-25'
-              start_time: '12:50:00'
-              end_time: '15:43:00'
+              date: string
+              start_time: string
+              end_time: string
+              status: string
               subject: 1
-              topic: Тема урока
-              comment: Комментарий к уроку
+              teacher_comment: string
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/TeacherDetailLesson'
+            type: object
+            x-examples:
+              Example 1:
+                id: 1
+                date: '2023-07-14'
+                start_time: '12:50:00'
+                end_time: '15:43:00'
+                status: planned
+                student_full_name: Last_Name Firs_Name
+                subject_title: Title
+                teacher_comment: ''
+            properties:
+              id:
+                type: integer
+              date:
+                type: string
+              start_time:
+                type: string
+              end_time:
+                type: string
+              status:
+                type: string
+              student_full_name:
+                type: string
+              subject_title:
+                type: string
+                x-nullable: true
+              teacher_comment:
+                type: string
+          examples:
+            Example 1:
+              id: 0
+              date: string
+              start_time: string
+              end_time: string
+              status: string
+              student_full_name: string
+              subject_title: string
+              teacher_comment: string
         '400':
           $ref: '#/responses/ValidationError'
         '401':
