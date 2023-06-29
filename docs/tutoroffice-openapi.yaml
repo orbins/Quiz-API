@@ -1263,7 +1263,7 @@ paths:
         Возвращает уроки для пользователя (как репетитора так и для ученика), в которых он учитывается. Эндпоинт доступен для всех авторизованных пользователей. 
         </p>
         <p>
-        Есть возможность фильтрации данных по датам, учителям (для учеников), по ученикам (для учителей) и предметам, по которым назначаются уроки.
+        Есть возможность фильтрации данных по датам, учителям (для учеников), по ученикам (для учителей) и предметам, по которым назначаются уроки. Также добавлена пагинация
         </p>
       parameters:
         - name: teacher
@@ -1289,95 +1289,98 @@ paths:
           in: query
           name: date_before
           description: 'дата, по которую необходимо осуществить фильтрацию '
+        - type: string
+          in: query
+          name: page
+          description: Номер страницы
       responses:
         '200':
           description: ''
           schema:
-            type: array
+            type: object
             x-examples:
               Example 1:
-                - id: 4
-                  date: '2023-04-21'
+                count: 6
+                next: 'http://127.0.0.1:8000/user/lesson/list/?page=2'
+                previous: null
+                results:
+                  - id: 1
+                    date: '2023-07-12'
+                    start_time: '05:00:00'
+                    end_time: '07:02:00'
+                    status: planned
+                    student_full_name: Last_name First_name
+                  - id: 2
+                    date: '2023-07-14'
+                    start_time: '02:58:00'
+                    end_time: '04:58:00'
+                    status: planned
+                    student_full_name: Last_name2 First_name2
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    date:
+                      type: string
+                    start_time:
+                      type: string
+                    end_time:
+                      type: string
+                    status:
+                      type: string
+                    teacher or student_full_name:
+                      type: string
+                      x-stoplight:
+                        id: hndymkqq1clbs
+          examples:
+            Список уроков для репетитора:
+              count: 2
+              next: null
+              previous: null
+              results:
+                - id: 1
+                  date: '2023-06-12'
                   start_time: '05:00:00'
                   end_time: '07:02:00'
                   status: planned
-                  homework: null
-                  teacher: Lacostovich Novak
+                  student_full_name: Last_name First_name
                 - id: 2
-                  date: '2023-04-21'
-                  start_time: '13:10:00'
-                  end_time: '15:10:00'
+                  date: '2023-06-14'
+                  start_time: '12:00:00'
+                  end_time: '14:00:00'
                   status: planned
-                  homework: null
-                  teacher: Lacostovich Novak
-                - id: 1
-                  date: '2023-04-25'
-                  start_time: '12:50:00'
-                  end_time: '15:43:00'
-                  status: planned
-                  homework: null
-                  teacher: Lacostovich Novak
-            items:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  description: идентификатор урока
-                date:
-                  type: string
-                  description: дата проведения урока
-                  format: date
-                start_time:
-                  type: string
-                  description: время начала урока
-                  format: time
-                end_time:
-                  type: string
-                  description: время окончания урока
-                  format: time
-                status:
-                  type: string
-                  description: 'статус урока, может быть: запланирован(planned)/проведен(done)/отменён(canceled)'
-                homework:
-                  type: boolean
-                  description: наличие дз
-                  x-nullable: true
-                teacher or student_full_name:
-                  type: string
-                  x-stoplight:
-                    id: 24dl13j2rkwaj
-                  description: Фамилия и имя преподавателя для ученика или фамилия и имя ученика для преподавателя
-          examples:
-            Список уроков для репетитора:
-              - id: 2
-                date: '2023-04-21'
-                start_time: '13:10:00'
-                end_time: '15:10:00'
-                status: planned
-                homework: null
-                student_full_name: Сиоров Сергей
-              - id: 1
-                date: '2023-04-25'
-                start_time: '12:50:00'
-                end_time: '15:43:00'
-                status: planned
-                homework: null
-                student_full_name: Сиоров Сергей
+                  student_full_name: Last_name2 First_name2
             Список уроков для ученика:
-              - id: 2
-                date: '2023-04-21'
-                start_time: '13:10:00'
-                end_time: '15:10:00'
-                status: planned
-                homework: null
-                teacher: Пупкин Василий
-              - id: 1
-                date: '2023-04-25'
-                start_time: '12:50:00'
-                end_time: '15:43:00'
-                status: planned
-                homework: null
-                teacher: Пупкин Василий
+              count: 2
+              next: null
+              previous: null
+              results:
+                - id: 1
+                  date: '2023-06-12'
+                  start_time: '05:00:00'
+                  end_time: '07:02:00'
+                  status: planned
+                  teacher_full_name: Last_name First_name
+                - id: 2
+                  date: '2023-06-14'
+                  start_time: '12:00:00'
+                  end_time: '14:00:00'
+                  status: planned
+                  teacher_full_name: Last_name2 First_name2
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -1391,7 +1394,7 @@ paths:
       description: |-
         <p>
         Создание урока, доступно только для пользователей-репетиторов.
-        Урок не может создаваться на дату быть раньше сегодняшней, а также время окончание урока должно быть позже времени начала урока.
+        Урок не может создаваться на дату быть раньше сегодняшней, а также время окончание урока должно быть позже времени начала урока. Псевдоученик (ученик репетитора) и предмет выбираются только из тех, которые связанаы с текущим пользователем-репетитором. Это значит, что репетитор не может назначить урок по тем, предметом, которые он у себя не выбирал и для тех учеников, которых он не создавал.
         </p>
       parameters:
         - in: body
@@ -1414,6 +1417,7 @@ paths:
               subject:
                 type: integer
                 description: идентификатор предмета
+                x-nullable: true
               date:
                 type: string
                 description: дата
@@ -1426,12 +1430,11 @@ paths:
                 type: string
                 description: время окончания урока
                 format: time
-              topic:
-                type: string
-                description: тема урока
-              comment:
+              teacher_comment:
                 type: string
                 description: комментарий к уроку
+                x-stoplight:
+                  id: br2qbflfla9rh
             required:
               - student
               - subject
@@ -1444,8 +1447,7 @@ paths:
               student: 1
               start_time: '12:00'
               end_time: '14:00'
-              topic: Тема урока
-              comment: Комментарий к уроку
+              teacher_comment: Комментарий к уроку
               date: '2023-06-1'
       responses:
         '201':
@@ -1475,9 +1477,6 @@ paths:
                 format: time
               status:
                 type: string
-              homework:
-                type: boolean
-                x-nullable: true
               student_full_name:
                 type: string
           examples:
@@ -1516,11 +1515,9 @@ paths:
               start_time: '12:50:00'
               end_time: '15:43:00'
               status: planned
-              homework: null
               student_full_name: Сидоров Сергей
               subject_title: История
-              topic: Тема урока
-              comment: Комментарий к уроку
+              teacher_comment: Комментарий к уроку
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -2082,19 +2079,16 @@ definitions:
     type: object
     x-stoplight:
       id: hldvfkqomiu91
-    x-examples:
-      Изменение информации об уроке:
-        date: '2023-04-25'
-        start_time: '12:50:00'
-        end_time: '15:43:00'
-        subject: 1
-        topic: Тема урока
-        comment: Комментарий к уроку
+    x-examples: {}
     properties:
       id:
         title: ID
         type: integer
         readOnly: true
+      student:
+        type: integer
+        x-stoplight:
+          id: 7v2z8ry9jna2i
       date:
         title: Дата
         type: string
@@ -2110,11 +2104,6 @@ definitions:
         type: string
         minLength: 1
         readOnly: true
-      homework:
-        title: Homework
-        type: boolean
-        x-nullable: true
-        readOnly: true
       student_full_name:
         title: Student full name
         type: string
@@ -2122,23 +2111,21 @@ definitions:
       subject:
         title: Subject
         type: integer
+        x-nullable: true
       subject_title:
         title: Subject title
         type: string
         readOnly: true
-      topic:
-        title: Тема урока
-        type: string
-        maxLength: 40
-      comment:
+      teacher_comment:
         title: Комментарий
         type: string
+        x-stoplight:
+          id: s834obu63ub9f
     required:
       - date
       - start_time
       - end_time
       - status
-      - subject
   TeacherStudentDetail - copy:
     type: object
     x-stoplight:
