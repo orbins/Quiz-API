@@ -1811,19 +1811,45 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/StudentDetailLesson'
+            type: object
+            x-examples:
+              Example 1:
+                id: 1
+                date: '2023-07-29'
+                start_time: '12:50:00'
+                end_time: '15:43:00'
+                status: string
+                teacher: string
+                subject_title: string
+                student_comment: string
+            properties:
+              id:
+                type: integer
+              date:
+                type: string
+              start_time:
+                type: string
+              end_time:
+                type: string
+              status:
+                type: string
+              teacher:
+                type: string
+              subject_title:
+                type: string
+                x-nullable: true
+              student_comment:
+                type: string
           examples:
             Урок для ученика:
               id: 1
-              date: '2023-04-25'
+              date: '2023-07-29'
               start_time: '12:50:00'
               end_time: '15:43:00'
-              status: planned
-              homework: null
-              teacher: Сидоров Сергей
-              subject_title: История
-              topic: Тема
-              comment: Комментарий
+              status: string
+              teacher: string
+              subject_title: string
+              student_comment: string
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -2078,6 +2104,7 @@ definitions:
         title: Id
         type: string
         format: uuid
+        description: ID
         readOnly: true
       first_name:
         title: Имя
