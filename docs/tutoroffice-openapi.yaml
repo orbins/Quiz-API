@@ -850,6 +850,7 @@ paths:
                 x-nullable: true
               email:
                 type: string
+                format: email
               level:
                 type: string
           x-examples:
@@ -896,6 +897,7 @@ paths:
                 x-nullable: true
               email:
                 type: string
+                format: email
               bind:
                 enum:
                   - Привязан (related)
@@ -975,6 +977,7 @@ paths:
                 x-nullable: true
               email:
                 type: string
+                format: email
               photo:
                 type: string
                 x-nullable: true
@@ -982,9 +985,10 @@ paths:
                 type: string
               bind:
                 enum:
-                  - Привязан (related)
-                  - Не привязан (unrelated)
-                  - Ожидание ответа (awaiting)
+                  - related
+                  - unrelated
+                  - awaiting
+                default: unrelated
           examples:
             Получение данных об ученике:
               id: 0
@@ -1475,15 +1479,19 @@ paths:
                       type: integer
                     date:
                       type: string
+                      format: date
                     start_time:
                       type: string
+                      format: time
                     end_time:
                       type: string
+                      format: time
                     status:
                       enum:
-                        - Запланирован (planned)
-                        - Проведён (done)
-                        - Отменён (canceled)
+                        - planned
+                        - done
+                        - canceled
+                      default: planned
                       readOnly: true
                     teacher or student_full_name:
                       type: string
@@ -1621,9 +1629,10 @@ paths:
                 format: time
               status:
                 enum:
-                  - Запланирован (planned)
-                  - Проведён (done)
-                  - Отменён (canceled)
+                  - planned
+                  - done
+                  - canceled
+                default: planned
               student_full_name:
                 type: string
           examples:
@@ -1671,15 +1680,19 @@ paths:
                 readOnly: true
               date:
                 type: string
+                format: date
               start_time:
                 type: string
+                format: time
               end_time:
                 type: string
+                format: time
               status:
                 enum:
                   - Запланирован (planned)
                   - Отменён (canceled)
                   - Проведён (done)
+                default: Запланирован (planned)
               student_full_name:
                 type: string
                 readOnly: true
@@ -1727,15 +1740,19 @@ paths:
             properties:
               date:
                 type: string
+                format: date
               start_time:
                 type: string
+                format: time
               end_time:
                 type: string
+                format: time
               status:
                 enum:
-                  - Запланирован (planned)
-                  - Проведён (done)
-                  - Отменён (canceled)
+                  - planned
+                  - done
+                  - canceled
+                default: planned
               subject:
                 type: integer
                 x-nullable: true
@@ -1775,9 +1792,10 @@ paths:
                 type: string
               status:
                 enum:
-                  - Запланирован (planned)
-                  - Проведён (done)
-                  - Отменён (canceled)
+                  - planned
+                  - done
+                  - canceled
+                default: planned
               student_full_name:
                 type: string
               subject_title:
@@ -1827,7 +1845,7 @@ paths:
   '/student/lessons/{id}/':
     get:
       operationId: ''
-      description: 'Возвращает данные о конкретном уроке, имеется только возможность чтения. Эндпоинт доступен только для пользователя-ученика, который задействован в уроке.'
+      description: 'Возвращает данные о конкретном уроке. Эндпоинт доступен только для пользователя-ученика, который задействован в уроке.'
       parameters: []
       responses:
         '200':
@@ -1849,15 +1867,19 @@ paths:
                 type: integer
               date:
                 type: string
+                format: date
               start_time:
                 type: string
+                format: time
               end_time:
                 type: string
+                format: time
               status:
                 enum:
-                  - Запланирован (planned)
-                  - Проведён (done)
-                  - Отменён (canceled)
+                  - planned
+                  - done
+                  - canceled
+                default: planned
               teacher:
                 type: string
               subject_title:
@@ -1888,58 +1910,348 @@ paths:
         description: A unique integer value identifying this Урок.
         required: true
         type: integer
-  /materials/:
-    get:
-      operationId: materials_list
-      description: ViewSet для эндпойнта /materials/
-      parameters:
-        - name: teacher_student
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: subject
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: text
-          in: query
-          description: ''
-          required: false
-          type: string
-        - name: type
-          in: query
-          description: ''
-          required: false
-          type: string
+    patch:
+      summary: ''
+      operationId: patch-student-lessons-id
       responses:
         '200':
           description: ''
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Material'
+            type: object
+            x-examples:
+              Example 1:
+                id: 1
+                date: '2023-04-25'
+                start_time: '12:50:00'
+                end_time: '15:43:00'
+                status: planned
+                teacher: string
+                subject_title: string
+                student_comment: string
+            properties:
+              id:
+                type: integer
+              date:
+                type: string
+                format: date
+              start_time:
+                type: string
+                format: time
+              end_time:
+                type: string
+                format: time
+              status:
+                enum:
+                  - planend
+                  - done
+                  - canceled
+                default: planend
+              teacher:
+                type: string
+              subject_title:
+                type: string
+                x-nullable: true
+              student_comment:
+                type: string
+      description: 'Изменение комментария ученика по уроку. Эндпоинт доступен только для пользователя-ученика, который задействован в уроке. Можно изменить только комментарий ученика.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              student_comment:
+                type: string
+                x-stoplight:
+                  id: 45w4hktftgjxa
+          x-examples:
+            '':
+              student_comment: string
+  /teacher/materials/:
+    get:
+      operationId: materials_list
+      description: 'Просмотр материалов репетитора. Эндпоинт доступен только для пользователей- репетиторов. Есть пагниация. Также есть фильрация по ID учеников, ID премдетов, типу материала (приватный или публичный), дате.'
+      parameters:
+        - name: teacher_student
+          in: query
+          description: ID ученика
+          required: false
+          type: string
+        - name: subject
+          in: query
+          description: ID предмета
+          required: false
+          type: string
+        - name: type
+          in: query
+          required: false
+          type: string
+          description: Тип материал (private/public)
+        - name: page
+        - type: string
+          in: query
+          name: date
+          description: Дата
+        - type: string
+          in: query
+          name: page
+          description: Номер страницы
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                count: 10
+                next: 'http://127.0.0.1:8000/teacher/materials/?page=2'
+                previous: null
+                results:
+                  - id: 1
+                    student_full_name:
+                      - Last Name First Name
+                    subject_title: string
+                    file: 'http://127.0.0.1:8000/media/materials/5.jpg'
+                    file_type: image/jpeg
+                    file_size: 78
+                    text: string
+                    material_type: private
+                    date: '2023-07-29'
+                  - id: 2
+                    student_full_name:
+                      - Last Name First Name
+                    subject_title: null
+                    file: 'http://127.0.0.1:8000/media/materials/5.jpg'
+                    file_type: image/jpeg
+                    file_size: 88
+                    text: text
+                    material_type: public
+                    date: '2023-07-28'
+            properties:
+              count:
+                type: integer
+                description: Общее количество записей
+              next:
+                type: string
+                format: uri
+                description: Следующая страница
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                description: Предыдущая страница
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    student_full_name:
+                      type: array
+                      description: Ученики
+                      x-nullable: true
+                      items:
+                        x-stoplight:
+                          id: lis4wjojolqyr
+                        type: string
+                    subject_title:
+                      type: string
+                      description: Имя предмета
+                      x-nullable: true
+                    file:
+                      type: string
+                      description: Файл
+                    file_type:
+                      type: string
+                      description: Тип файла
+                    file_size:
+                      type: integer
+                      description: Размер файла
+                    text:
+                      type: string
+                      description: Текст к файлу
+                      x-nullable: true
+                    material_type:
+                      description: Тип материала
+                      enum:
+                        - public
+                        - private
+                    date:
+                      type: string
+                      description: Дата
+                      format: date
+          headers: {}
+          examples:
+            '':
+              count: 0
+              next: 'http://example.com'
+              previous: 'http://example.com'
+              results:
+                - id: 1
+                  student_full_name:
+                    - Last_Name First_Name
+                  subject_title: string
+                  file: string
+                  file_type: string
+                  file_size: 0
+                  text: string
+                  material_type: public
+                  date: '2023-07-24'
+                - id: 2
+                  student_full_name:
+                    - Last_Name First_Name
+                  subject_title: null
+                  file: string
+                  file_type: string
+                  file_size: 0
+                  text: string
+                  material_type: private
+                  date: '2023-07-24'
       tags:
-        - materials
+        - Репетиторы
+      summary: Получение материалов репетитора
     post:
       operationId: materials_create
-      description: ViewSet для эндпойнта /materials/
+      description: 'Создание материала. Эндпоинт доступен только для пользователей-репетиторов, для создания, если пользователь определил тип материала как приватный, ему необходимо будет выбрать учеников из тех, что связаны с ним. Если же он определяет тип материала как публичный, то он не сможет выбрать ученика.    '
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/Material'
+            type: object
+            x-examples:
+              Example 1:
+                student:
+                  - 1
+                  - 2
+                subject: 1
+                file: string
+                text: string
+                material_type: public
+            properties:
+              student:
+                type: array
+                description: Ученик/ученики
+                x-nullable: true
+                items:
+                  x-stoplight:
+                    id: sx0n9rucbi72v
+                  type: integer
+              subject:
+                type: integer
+                description: Предмет
+                x-nullable: true
+              file:
+                type: string
+                format: uri
+                description: Файл
+              text:
+                type: string
+                description: Текст к файлу
+              material_type:
+                enum:
+                  - public
+                  - private
+                description: Тип материала (публичный/приватный)
+            required:
+              - file
+              - material_type
+          x-examples:
+            '':
+              student:
+                - 1
+                - 2
+              subject: 1
+              file: 'http://example.com'
+              text: string
+              material_type: public
       responses:
         '201':
           description: ''
           schema:
-            $ref: '#/definitions/Material'
+            type: object
+            x-examples:
+              Example 1:
+                id: 1
+                student_full_name:
+                  - Last_Name First_Name
+                subject_title: string
+                file: string
+                file_type: string
+                file_size: 88
+                text: string
+                material_type: public
+                date: '2023-07-24'
+            properties:
+              id:
+                type: integer
+              student_full_name:
+                type: array
+                x-nullable: true
+                items:
+                  x-stoplight:
+                    id: 6ph8vw875cf92
+                  type: string
+              subject_title:
+                type: string
+                x-nullable: true
+              file:
+                type: string
+              file_type:
+                type: string
+              file_size:
+                type: integer
+              text:
+                type: string
+              material_type:
+                enum:
+                  - public
+                  - private
+              date:
+                type: string
+                format: date
+          examples:
+            '':
+              id: 0
+              student_full_name:
+                - string
+              subject_title: string
+              file: string
+              file_type: string
+              file_size: 0
+              text: string
+              material_type: public
+              date: '2023-07-29'
       tags:
         - materials
     parameters: []
-  '/materials/{id}/':
+  '/teacher/materials/{id}/':
+    parameters:
+      - type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags:
+        - Репетиторы
+      responses: {}
+      operationId: get-teacher-materials-id
+    patch:
+      summary: ''
+      operationId: patch-teacher-materials-id
+      responses:
+        '200':
+          description: OK
+    delete:
+      summary: ''
+      operationId: delete-teacher-materials-id
+      responses:
+        '200':
+          description: OK
+  /student/materials/:
     get:
       operationId: materials_read
       description: ViewSet для эндпойнта /materials/
@@ -1949,38 +2261,23 @@ paths:
           description: ''
           schema:
             $ref: '#/definitions/Material'
-      tags:
-        - materials
-    patch:
-      operationId: materials_partial_update
-      description: ViewSet для эндпойнта /materials/
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Material'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Material'
-      tags:
-        - materials
-    delete:
-      operationId: materials_delete
-      description: ViewSet для эндпойнта /materials/
-      parameters: []
-      responses:
-        '204':
+        '':
           description: ''
       tags:
-        - materials
+        - Ученики
+    parameters: []
+  '/student/materials/{id}/':
     parameters:
-      - name: id
+      - type: string
+        name: id
         in: path
         required: true
-        type: string
+    get:
+      summary: Your GET endpoint
+      tags:
+        - Ученики
+      responses: {}
+      operationId: get-student-materials-id
 definitions:
   TokenObtainPair:
     type: object
@@ -2010,10 +2307,9 @@ definitions:
       - email
       - password
   Material:
-    required:
-      - teacher_student
-      - subject
     type: object
+    x-stoplight:
+      id: nbexrd7ac4dg6
     properties:
       id:
         title: ID
@@ -2025,17 +2321,17 @@ definitions:
         readOnly: true
       teacher_student:
         type: array
+        uniqueItems: true
         items:
           type: string
-        uniqueItems: true
       subject:
         title: Subject
         type: string
       file:
         title: Файл материалов
         type: string
-        readOnly: true
         format: uri
+        readOnly: true
       text:
         title: Текст к материалу
         type: string
@@ -2046,8 +2342,6 @@ definitions:
           - public
           - private
         default: private
-    x-stoplight:
-      id: nbexrd7ac4dg6
   Profile:
     type: object
     x-stoplight:
@@ -2199,6 +2493,7 @@ definitions:
       - is_teacher
       - password
       - password2
+    description: ''
   StudentTeacher:
     type: object
     properties:
