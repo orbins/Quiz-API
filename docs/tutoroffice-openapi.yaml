@@ -2063,6 +2063,7 @@ paths:
                     file:
                       type: string
                       description: Файл
+                      format: uri
                     file_type:
                       type: string
                       description: Тип файла
@@ -2109,12 +2110,16 @@ paths:
                   text: string
                   material_type: private
                   date: '2023-07-24'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
-      summary: Получение материалов репетитора
+      summary: Получение материалов для репетитора
     post:
       operationId: materials_create
-      description: 'Создание материала. Эндпоинт доступен только для пользователей-репетиторов, для создания, если пользователь определил тип материала как приватный, ему необходимо будет выбрать учеников из тех, что связаны с ним. Если же он определяет тип материала как публичный, то он не сможет выбрать ученика.    '
+      description: 'Создание материала. Эндпоинт доступен только для пользователей-репетиторов. Если пользователь определил тип материала как приватный, ему необходимо будет выбрать учеников из тех, что связаны с ним. Если же он определяет тип материала как публичный, то он не сможет выбрать ученика.    '
       parameters:
         - name: data
           in: body
@@ -2199,6 +2204,7 @@ paths:
                 x-nullable: true
               file:
                 type: string
+                format: uri
               file_type:
                 type: string
               file_size:
@@ -2224,8 +2230,17 @@ paths:
               text: string
               material_type: public
               date: '2023-07-29'
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties: {}
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
       tags:
-        - materials
+        - Репетиторы
     parameters: []
   '/teacher/materials/{id}/':
     parameters:
@@ -2234,35 +2249,328 @@ paths:
         in: path
         required: true
     get:
-      summary: Your GET endpoint
+      summary: Получение отдельного материала для репетитора
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 12
+                student_full_name:
+                  - string
+                subject_title: string
+                file: 'http://127.0.0.1:8000/media/materials/5.jpg'
+                file_type: image/jpeg
+                file_size: 88
+                text: string
+                material_type: private
+                date: '2023-06-04'
+            properties:
+              id:
+                type: integer
+              student_full_name:
+                type: array
+                x-nullable: true
+                items:
+                  x-stoplight:
+                    id: sirg4hbhctzqa
+                  type: string
+              subject_title:
+                type: string
+                x-nullable: true
+              file:
+                type: string
+                format: uri
+              file_type:
+                type: string
+              file_size:
+                type: integer
+              text:
+                type: string
+              material_type:
+                enum:
+                  - public
+                  - private
+              date:
+                type: string
+                format: date
+          examples:
+            Example 1:
+              id: 0
+              student_full_name:
+                - string
+              subject_title: string
+              file: string
+              file_type: string
+              file_size: 0
+              text: string
+              material_type: string
+              date: string
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-teacher-materials-id
+      description: 'Доступно только для пользователя, репетитора, который создал этот материал.'
       tags:
         - Репетиторы
-      responses: {}
-      operationId: get-teacher-materials-id
     patch:
       summary: ''
       operationId: patch-teacher-materials-id
       responses:
         '200':
-          description: OK
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 12
+                student_full_name:
+                  - Учеников Andrew
+                subject_title: null
+                file: 'http://127.0.0.1:8000/media/materials/5.jpg'
+                file_type: image/jpeg
+                file_size: 88
+                text: intermediate
+                material_type: private
+                date: '2023-06-04'
+            properties:
+              id:
+                type: integer
+              student_full_name:
+                type: array
+                x-nullable: true
+                items:
+                  x-stoplight:
+                    id: gmwt8jbsqcpe4
+                  type: string
+              subject_title:
+                type: string
+                x-nullable: true
+              file:
+                type: string
+                format: uri
+              file_type:
+                type: string
+              file_size:
+                type: integer
+              text:
+                type: string
+              material_type:
+                enum:
+                  - public
+                  - private
+              date:
+                type: string
+                format: date
+          examples:
+            '':
+              id: 0
+              student_full_name:
+                - string
+              subject_title: string
+              file: 'http://example.com'
+              file_type: string
+              file_size: 0
+              text: string
+              material_type: public
+              date: '2019-08-24'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      description: 'Обновление данных материала. Доступно только для пользователя-репетитора, который является владельцем материала. Если меняется тип меняется с приватного на публичный, то ученики удалятся. А если с публичного на приватный, то обязательно нужно указывать учеников, для которых предназначен этот материал. Ученики и предметы должны быть только те, которые связаны с пользователем.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                student:
+                  - 1
+                  - 2
+                subject: 1
+                file: 'http://127.0.0.1:8000/media/materials/5.jpg'
+                text: intermediate
+                material_type: private
+            properties:
+              student:
+                type: array
+                x-nullable: true
+                items:
+                  x-stoplight:
+                    id: 5p9ob5mwfey4y
+                  type: integer
+              subject:
+                type: integer
+                x-nullable: true
+              file:
+                type: string
+                format: uri
+              text:
+                type: string
+              material_type:
+                enum:
+                  - public
+                  - private
+          x-examples: {}
+      tags:
+        - Репетиторы
     delete:
       summary: ''
       operationId: delete-teacher-materials-id
       responses:
-        '200':
-          description: OK
+        '204':
+          description: ''
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      description: 'Удаление материалов репетитора, доступно только для пользователя репетитора'
+      tags:
+        - Репетиторы
   /student/materials/:
     get:
-      operationId: materials_read
-      description: ViewSet для эндпойнта /materials/
-      parameters: []
+      operationId: materials_list
+      description: 'Просмотр материалов ученика. Эндпоинт доступен только для пользователей-учеников. Есть пагниация. Также есть фильрация по ID репетиторов, ID премдетов, типу материала (приватный или публичный), дате.'
+      parameters:
+        - name: teacher_student
+          in: query
+          description: ID ученика
+          required: false
+          type: string
+        - name: subject
+          in: query
+          description: ID предмета
+          required: false
+          type: string
+        - name: type
+          in: query
+          required: false
+          type: string
+          description: Тип материал (private/public)
+        - name: page
+        - type: string
+          in: query
+          name: date
+          description: Дата
+        - type: string
+          in: query
+          name: page
+          description: Номер страницы
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/Material'
-        '':
-          description: ''
+            type: object
+            x-examples:
+              Example 1:
+                count: 10
+                next: 'http://127.0.0.1:8000/teacher/materials/?page=2'
+                previous: null
+                results:
+                  - id: 1
+                    student_full_name:
+                      - Last Name First Name
+                    subject_title: string
+                    file: 'http://127.0.0.1:8000/media/materials/5.jpg'
+                    file_type: image/jpeg
+                    file_size: 78
+                    text: string
+                    material_type: private
+                    date: '2023-07-29'
+                  - id: 2
+                    student_full_name:
+                      - Last Name First Name
+                    subject_title: null
+                    file: 'http://127.0.0.1:8000/media/materials/5.jpg'
+                    file_type: image/jpeg
+                    file_size: 88
+                    text: text
+                    material_type: public
+                    date: '2023-07-28'
+            properties:
+              count:
+                type: integer
+                description: Общее количество записей
+              next:
+                type: string
+                format: uri
+                description: Следующая страница
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                description: Предыдущая страница
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    teacher:
+                      type: string
+                      description: Ученики
+                      x-nullable: true
+                    subject_title:
+                      type: string
+                      description: Имя предмета
+                      x-nullable: true
+                    file:
+                      type: string
+                      description: Файл
+                      format: uri
+                    file_type:
+                      type: string
+                      description: Тип файла
+                    file_size:
+                      type: integer
+                      description: Размер файла
+                    text:
+                      type: string
+                      description: Текст к файлу
+                      x-nullable: true
+                    date:
+                      type: string
+                      description: Дата
+                      format: date
+          headers: {}
+          examples:
+            '':
+              count: 0
+              next: 'http://example.com'
+              previous: 'http://example.com'
+              results:
+                - id: 1
+                  teacher:
+                    - Last_Name First_Name
+                  subject_title: string
+                  file: string
+                  file_type: string
+                  file_size: 0
+                  text: string
+                  date: '2023-07-24'
+                - id: 2
+                  teacher:
+                    - Last_Name First_Name
+                  subject_title: null
+                  file: string
+                  file_type: string
+                  file_size: 0
+                  text: string
+                  date: '2023-07-24'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      summary: Получение материалов для ученика
       tags:
         - Ученики
     parameters: []
@@ -2273,11 +2581,788 @@ paths:
         in: path
         required: true
     get:
-      summary: Your GET endpoint
+      summary: Получение отдельного материала для ученика
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 12
+                student_full_name:
+                  - string
+                subject_title: string
+                file: 'http://127.0.0.1:8000/media/materials/5.jpg'
+                file_type: image/jpeg
+                file_size: 88
+                text: string
+                material_type: private
+                date: '2023-06-04'
+            properties:
+              id:
+                type: integer
+              teacher:
+                type: string
+                x-stoplight:
+                  id: wmg20l7sk95jf
+                x-nullable: true
+              subject_title:
+                type: string
+                x-nullable: true
+              file:
+                type: string
+                format: uri
+              file_type:
+                type: string
+              file_size:
+                type: integer
+              text:
+                type: string
+              date:
+                type: string
+                format: date
+          examples:
+            '':
+              id: 0
+              teacher: Last_Name First_Name
+              subject_title: string
+              file: 'http://example.com'
+              file_type: string
+              file_size: 0
+              text: string
+              date: '2019-08-24'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-teacher-materials-id
+      description: 'Доступно только для пользователя-ученика, который связан с этим материалом.'
       tags:
         - Ученики
-      responses: {}
-      operationId: get-student-materials-id
+  /teacher/homeworks/:
+    get:
+      summary: Получение ДЗ для репетитора
+      tags:
+        - Репетиторы
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                count: 2
+                next: null
+                previous: null
+                results:
+                  - id: 4ead9524-0bf9-4cf3-aad9-a3f8709d83b0
+                    student_full_name: Авобин Иван
+                    student_photo: null
+                    timestamp: '2023-06-15T10:39:07.971053'
+                    subject_title: Computer Science
+                    text: ''
+                    file: 'http://127.0.0.1:8000/media/homeworks/tasks/pyhon-icon.png'
+                    reply_file: null
+                    status: sended
+                  - id: 65d762c1-c590-46b8-ab9d-1be212f977fd
+                    student_full_name: Учеников Andrew
+                    student_photo: null
+                    timestamp: '2023-06-15T10:38:30.628999'
+                    subject_title: null
+                    text: ''
+                    file: 'http://127.0.0.1:8000/media/homeworks/tasks/cropped-IMG_45592.jpg'
+                    reply_file: null
+                    status: sended
+            properties:
+              count:
+                type: integer
+                description: Общее количество записей
+              next:
+                type: string
+                format: uri
+                description: Следующая страница
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                description: Предыдущая страница
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    student_full_name:
+                      type: string
+                      description: ФИО ученика
+                    student_photo:
+                      type: string
+                      format: uri
+                      x-nullable: true
+                    timestamp:
+                      type: string
+                      format: date-time
+                      description: Дата и время
+                    subject_title:
+                      type: string
+                      description: Предмет
+                      x-nullable: true
+                    text:
+                      type: string
+                      description: Текст
+                    file:
+                      type: string
+                      format: uri
+                      description: Файл
+                    reply_file:
+                      description: Ответный файл от ученика
+                      type: string
+                      format: uri
+                      x-nullable: true
+                    status:
+                      enum:
+                        - sended
+                        - done
+                        - accepted
+                      description: Статус
+          examples:
+            '':
+              count: 0
+              next: 'http://example.com'
+              previous: 'http://example.com'
+              results:
+                - id: string
+                  student_full_name: string
+                  student_photo: 'http://example.com'
+                  timestamp: '2019-08-24T14:15:22Z'
+                  subject_title: string
+                  text: string
+                  file: 'http://example.com'
+                  reply_file: 'http://example.com'
+                  status: sended
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-teacher-homeworks
+      description: 'Эндпоинт доступен только для пользователей репетиторов. Есть пагинация. Также имеется возможность фильтрации по ученикам, предметам и статусам.'
+      parameters:
+        - type: string
+          in: query
+          name: page
+          description: Страница
+        - type: string
+          in: query
+          name: subject
+          description: ID предмета
+        - type: string
+          in: query
+          name: status
+          description: Статус ДЗ
+        - type: string
+          in: query
+          name: student
+          description: ID ученика
+    post:
+      summary: Создание ДЗ
+      operationId: post-teacher-homeworks
+      responses:
+        '200':
+          description: OK
+          examples:
+            Example 1:
+              id: string
+              student_full_name: string
+              student_photo: 'http://example.com'
+              timestamp: '2019-08-24T14:15:22Z'
+              subject_title: string
+              text: string
+              file: 'http://example.com'
+              reply_file: 'http://example.com'
+              status: sended
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 4ead9524-0bf9-4cf3-aad9-a3f8709d83b0
+                student_full_name: Авобин Иван
+                student_photo: null
+                timestamp: '2023-06-15T10:39:07.971053'
+                subject_title: Computer Science
+                text: ''
+                file: 'http://127.0.0.1:8000/media/homeworks/tasks/pyhon-icon.png'
+                reply_file: 'http://127.0.0.1:8000/media/homeworks/tasks/pyhon-icon.png'
+                status: sended
+            properties:
+              id:
+                type: string
+              student_full_name:
+                type: string
+              student_photo:
+                type: string
+                format: uri
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              subject_title:
+                type: string
+                x-nullable: true
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+              reply_file:
+                type: string
+                format: uri
+              status:
+                enum:
+                  - sended
+                  - done
+                  - accepted
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: 'Доступно только для репетитора. При создании репетитор выбирает ученика из списка созданных им самим, а также может выбрать предмет по которому хочет задать ДЗ, но это опционально. По умолчанию в ДЗ устанавливается статус sended (отправлено). '
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                student: string
+                subject_title: 0
+                text: ''
+                file: 'http://127.0.0.1:8000/media/homeworks/tasks/pyhon-icon.png'
+                status: sended
+            properties:
+              student:
+                type: integer
+                description: ID ученика
+              subject_title:
+                type: integer
+                description: ID предметов
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+              status:
+                enum:
+                  - sended
+                  - done
+                  - accepted
+          x-examples:
+            '':
+              student: 0
+              subject_title: 0
+              text: string
+              file: 'http://example.com'
+              status: sended
+          description: ''
+  '/teacher/homeworks/{id}/':
+    parameters:
+      - type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Получение конкретного ДЗ для репетитора
+      tags:
+        - Репетиторы
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 65d762c1-c590-46b8-ab9d-1be212f977fd
+                student_full_name: Учеников Andrew
+                student_photo: null
+                timestamp: '2023-06-15T10:38:30.628999'
+                subject_title: null
+                text: ''
+                file: 'http://127.0.0.1:8000/media/homeworks/tasks/cropped-IMG_45592.jpg'
+                reply_file: null
+                status: sended
+            properties:
+              id:
+                type: string
+                format: uuid
+              student_full_name:
+                type: string
+              student_photo:
+                type: string
+                format: uri
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              subject_title:
+                type: string
+                x-nullable: true
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+              reply_file:
+                type: string
+                format: uri
+                x-nullable: true
+              status:
+                enum:
+                  - sended
+                  - done
+                  - accepted
+          examples:
+            Example 1:
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              student_full_name: string
+              student_photo: 'http://example.com'
+              timestamp: '2019-08-24T14:15:22Z'
+              subject_title: string
+              text: string
+              file: 'http://example.com'
+              reply_file: 'http://example.com'
+              status: sended
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-teacher-homeworks-id
+      description: 'Эндпоинт доступен только для пользователя-репетитора, который создал ДЗ.'
+    patch:
+      summary: Изменение ДЗ
+      operationId: patch-teacher-homeworks-id
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: string
+                student_full_name: string
+                student_photo: 'http://example.com'
+                timestamp: '2019-08-24T14:15:22Z'
+                subject_title: string
+                text: string
+                file: 'http://example.com'
+                reply_file: 'http://example.com'
+                status: sended
+            properties:
+              id:
+                type: string
+                format: uuid
+              student_full_name:
+                type: string
+              student_photo:
+                type: string
+                format: uri
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              subject_title:
+                type: string
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+              reply_file:
+                type: string
+                format: uri
+                x-nullable: true
+              status:
+                enum:
+                  - sended
+                  - done
+                  - accepted
+          examples:
+            '':
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              student_full_name: string
+              student_photo: 'http://example.com'
+              timestamp: '2019-08-24T14:15:22Z'
+              subject_title: string
+              text: string
+              file: 'http://example.com'
+              reply_file: 'http://example.com'
+              status: done
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: 'Доступно только для пользователя-репетитора, владельца записи.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                student: 1
+                subject: 1
+                text: string
+                file: 'http://example.com'
+                status: accepted
+            properties:
+              student:
+                type: integer
+              subject:
+                type: integer
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+              status:
+                enum:
+                  - accepted
+                  - done
+                  - sended
+          x-examples:
+            '':
+              student: 0
+              subject: 0
+              text: string
+              file: string
+              status: accepted
+    delete:
+      summary: Удаление ДЗ
+      operationId: delete-teacher-homeworks-id
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: 'Эндпоинт доступен только для пользователя-репетитора, который создал ДЗ.'
+  /student/homeworks/:
+    get:
+      summary: Получение ДЗ для ученика
+      tags:
+        - Репетиторы
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                count: 2
+                next: null
+                previous: null
+                results:
+                  - id: 4ead9524-0bf9-4cf3-aad9-a3f8709d83b0
+                    student_full_name: Авобин Иван
+                    student_photo: null
+                    timestamp: '2023-06-15T10:39:07.971053'
+                    subject_title: Computer Science
+                    text: ''
+                    file: 'http://127.0.0.1:8000/media/homeworks/tasks/pyhon-icon.png'
+                    reply_file: null
+                    status: sended
+                  - id: 65d762c1-c590-46b8-ab9d-1be212f977fd
+                    student_full_name: Учеников Andrew
+                    student_photo: null
+                    timestamp: '2023-06-15T10:38:30.628999'
+                    subject_title: null
+                    text: ''
+                    file: 'http://127.0.0.1:8000/media/homeworks/tasks/cropped-IMG_45592.jpg'
+                    reply_file: null
+                    status: sended
+            properties:
+              count:
+                type: integer
+                description: Общее количество записей
+              next:
+                type: string
+                format: uri
+                description: Следующая страница
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                description: Предыдущая страница
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    teacher:
+                      type: string
+                      description: ФИО ученика
+                      x-stoplight:
+                        id: 5p58t3b7j2q5g
+                    teacher_photo:
+                      type: string
+                      format: uri
+                      x-stoplight:
+                        id: 0u7zcvm968gva
+                      x-nullable: true
+                    timestamp:
+                      type: string
+                      format: date-time
+                      description: Дата и время
+                    subject_title:
+                      type: string
+                      description: Предмет
+                      x-nullable: true
+                    text:
+                      type: string
+                      description: Текст
+                    file:
+                      type: string
+                      format: uri
+                      description: Файл
+                    reply_file:
+                      description: Ответный файл от ученика
+                      type: string
+                      format: uri
+                      x-nullable: true
+                    status:
+                      enum:
+                        - sended
+                        - done
+                        - accepted
+                      description: Статус
+          examples:
+            '':
+              count: 0
+              next: 'http://example.com'
+              previous: 'http://example.com'
+              results:
+                - id: string
+                  teacher: string
+                  teacher_photo: 'http://example.com'
+                  timestamp: '2019-08-24T14:15:22Z'
+                  subject_title: string
+                  text: string
+                  file: 'http://example.com'
+                  reply_file: 'http://example.com'
+                  status: sended
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-teacher-homeworks
+      description: 'Эндпоинт доступен только для пользователей учеников. Есть пагинация. Также имеется возможность фильтрации по ученикам, предметам и статусам.'
+      parameters:
+        - type: string
+          in: query
+          name: page
+          description: Страница
+        - type: string
+          in: query
+          name: subject
+          description: ID предмета
+        - type: string
+          in: query
+          name: status
+          description: Статус ДЗ
+        - type: string
+          in: query
+          name: teacher
+          description: ID репетитора
+    parameters: []
+  '/student/homeworks/{id}/':
+    parameters:
+      - type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Получение конкретного ДЗ для ученика
+      tags:
+        - Репетиторы
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 65d762c1-c590-46b8-ab9d-1be212f977fd
+                student_full_name: Учеников Andrew
+                student_photo: null
+                timestamp: '2023-06-15T10:38:30.628999'
+                subject_title: null
+                text: ''
+                file: 'http://127.0.0.1:8000/media/homeworks/tasks/cropped-IMG_45592.jpg'
+                reply_file: null
+                status: sended
+            properties:
+              id:
+                type: string
+                format: uuid
+              teacher:
+                type: string
+                x-stoplight:
+                  id: iyj5wl3nsy6wq
+              teacher_photo:
+                type: string
+                format: uri
+                x-stoplight:
+                  id: atkw383efn41x
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              subject_title:
+                type: string
+                x-nullable: true
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+              reply_file:
+                type: string
+                format: uri
+                x-nullable: true
+              status:
+                enum:
+                  - sended
+                  - done
+                  - accepted
+          examples:
+            Example 1:
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              teacher: string
+              teacher_photo: 'http://example.com'
+              timestamp: '2019-08-24T14:15:22Z'
+              subject_title: string
+              text: string
+              file: 'http://example.com'
+              reply_file: 'http://example.com'
+              status: sended
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-teacher-homeworks-id
+      description: 'Эндпоинт доступен только для пользователя-ученика, который связан с ДЗ.'
+    patch:
+      summary: Изменение ДЗ учеником
+      operationId: patch-teacher-homeworks-id
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: string
+                student_full_name: string
+                student_photo: 'http://example.com'
+                timestamp: '2019-08-24T14:15:22Z'
+                subject_title: string
+                text: string
+                file: 'http://example.com'
+                reply_file: 'http://example.com'
+                status: sended
+            properties:
+              id:
+                type: string
+                format: uuid
+              student_full_name:
+                type: string
+              student_photo:
+                type: string
+                format: uri
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              subject_title:
+                type: string
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+              reply_file:
+                type: string
+                format: uri
+                x-nullable: true
+              status:
+                enum:
+                  - sended
+                  - done
+                  - accepted
+          examples:
+            '':
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              student_full_name: string
+              student_photo: 'http://example.com'
+              timestamp: '2019-08-24T14:15:22Z'
+              subject_title: string
+              text: string
+              file: 'http://example.com'
+              reply_file: 'http://example.com'
+              status: done
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: 'Доступно только для пользователя-ученика, позволяет ему изменить статус ДЗ, чтобы подтвердить что он выполнил его и отослать ответный файл репетитору при необходимости.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                student: 1
+                subject: 1
+                text: string
+                file: 'http://example.com'
+                status: accepted
+            properties:
+              reply_file:
+                type: string
+                x-stoplight:
+                  id: noabi51yrln65
+                x-nullable: true
+              status:
+                enum:
+                  - accepted
+                  - done
+                  - sended
+          x-examples:
+            '':
+              reply_file: string
+              status: accepted
 definitions:
   TokenObtainPair:
     type: object
