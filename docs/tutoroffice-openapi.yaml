@@ -1844,7 +1844,7 @@ paths:
         type: integer
   '/student/lessons/{id}/':
     get:
-      operationId: ''
+      operationId: student_lessong_get
       description: 'Возвращает данные о конкретном уроке. Эндпоинт доступен только для пользователя-ученика, который задействован в уроке.'
       parameters: []
       responses:
@@ -2138,7 +2138,7 @@ paths:
             properties:
               student:
                 type: array
-                description: Ученик/ученики
+                description: id псевдоучеников
                 x-nullable: true
                 items:
                   x-stoplight:
@@ -2436,7 +2436,7 @@ paths:
         - Репетиторы
   /student/materials/:
     get:
-      operationId: materials_list
+      operationId: student_materials_list
       description: 'Просмотр материалов ученика. Эндпоинт доступен только для пользователей-учеников. Есть пагниация. Также есть фильрация по ID репетиторов, ID премдетов, типу материала (приватный или публичный), дате.'
       parameters:
         - name: teacher_student
@@ -2636,7 +2636,7 @@ paths:
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
-      operationId: get-teacher-materials-id
+      operationId: get-student-materials-id
       description: 'Доступно только для пользователя-ученика, который связан с этим материалом.'
       tags:
         - Ученики
@@ -2849,10 +2849,12 @@ paths:
             properties:
               student:
                 type: integer
-                description: ID ученика
-              subject_title:
+                description: ID псевдоученика
+              subject:
                 type: integer
                 description: ID предметов
+                x-stoplight:
+                  id: cdmgnnuq1r1ni
               text:
                 type: string
               file:
@@ -2863,6 +2865,9 @@ paths:
                   - sended
                   - done
                   - accepted
+            required:
+              - student
+              - file
           x-examples:
             '':
               student: 0
@@ -3011,7 +3016,7 @@ paths:
           $ref: '#/responses/PermissionDenied'
       tags:
         - Репетиторы
-      description: 'Доступно только для пользователя-репетитора, владельца записи.'
+      description: 'Доступно только для пользователя-репетитора, создателя ДЗ.'
       parameters:
         - in: body
           name: body
@@ -3171,7 +3176,7 @@ paths:
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
-      operationId: get-teacher-homeworks
+      operationId: get-student-homeworks
       description: 'Эндпоинт доступен только для пользователей учеников. Есть пагинация. Также имеется возможность фильтрации по ученикам, предметам и статусам.'
       parameters:
         - type: string
@@ -3266,11 +3271,11 @@ paths:
           $ref: '#/responses/AuthenticationError'
         '403':
           $ref: '#/responses/PermissionDenied'
-      operationId: get-teacher-homeworks-id
+      operationId: get-student-homeworks-id
       description: 'Эндпоинт доступен только для пользователя-ученика, который связан с ДЗ.'
     patch:
       summary: Изменение ДЗ учеником
-      operationId: patch-teacher-homeworks-id
+      operationId: patch-student-homeworks-id
       responses:
         '200':
           description: ''
@@ -3363,6 +3368,829 @@ paths:
             '':
               reply_file: string
               status: accepted
+  /teacher/messages/:
+    get:
+      summary: Получение сообщений для репетитора
+      tags:
+        - Репетиторы
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                count: 5
+                next: null
+                previous: null
+                results:
+                  - id: 5062f74b-df34-4d2a-9609-615b6c817a6f
+                    student_full_name: Учеников Andrew
+                    teacher: Lacostovich Novak
+                    sender: teacher
+                    sender_photo: null
+                    timestamp: '2023-06-14T17:25:10.448932'
+                    text: Dude!
+                    file: null
+                  - id: 8a89c589-6d70-49c3-93cb-3aef04b8859d
+                    student_full_name: Учеников Andrew
+                    teacher: Lacostovich Novak
+                    sender: teacher
+                    sender_photo: null
+                    timestamp: '2023-06-15T12:30:49.532076'
+                    text: Dude
+                    file: null
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    student_full_name:
+                      type: string
+                    teacher:
+                      type: string
+                    sender:
+                      enum:
+                        - teacher
+                        - sender
+                    sender_photo:
+                      type: string
+                      format: uri
+                      x-nullable: true
+                    timestamp:
+                      type: string
+                      format: date-time
+                    text:
+                      type: string
+                    file:
+                      type: string
+                      format: uri
+                      x-nullable: true
+          examples:
+            Example 1:
+              count: 0
+              next: 'http://example.com'
+              previous: 'http://example.com'
+              results:
+                - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  student_full_name: string
+                  teacher: string
+                  sender: teacher
+                  sender_photo: 'http://example.com'
+                  timestamp: '2019-08-24T14:15:22Z'
+                  text: string
+                  file: 'http://example.com'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-teacher-messages
+      description: Эндпоинт доступен только для пользователей репетиторов. Есть пагинация. Также имеется возможность фильтрации по ученикам и тексту.
+      parameters:
+        - type: string
+          in: query
+          name: page
+          description: Страница
+        - type: string
+          in: query
+          name: text
+          description: Текст
+        - type: string
+          in: query
+          name: student
+          description: ID ученика
+    post:
+      summary: Создание сообщения
+      operationId: post-teacher-messages
+      responses:
+        '200':
+          description: OK
+          examples:
+            Example 1:
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              student_full_name: string
+              teacher: string
+              sender: teacher
+              sender_photo: 'http://example.com'
+              timestamp: '2019-08-24T14:15:22Z'
+              text: string
+              file: 'http://example.com'
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: e45b57d8-a428-435d-9eb6-57bee602cbf9
+                student_full_name: Авобин Иван
+                teacher: Lacostovich Novak
+                sender: teacher
+                sender_photo: null
+                timestamp: '2023-07-06T00:24:56.203682'
+                text: текст
+                file: null
+            properties:
+              id:
+                type: string
+                format: uuid
+              student_full_name:
+                type: string
+              teacher:
+                type: string
+              sender:
+                enum:
+                  - teacher
+                  - sender
+              sender_photo:
+                type: string
+                format: uri
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+                x-nullable: true
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: Доступно только для репетитора. При создании репетитор выбирает ученика из списка созданных им самим.
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: e45b57d8-a428-435d-9eb6-57bee602cbf9
+                student_full_name: Авобин Иван
+                teacher: Lacostovich Novak
+                sender: teacher
+                sender_photo: null
+                timestamp: '2023-07-06T00:24:56.203682'
+                text: текст
+                file: null
+            properties:
+              student:
+                type: integer
+                x-stoplight:
+                  id: yg1z5guu05e5d
+                description: Id псевдоученика
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+                x-nullable: true
+            required:
+              - student
+              - text
+          x-examples:
+            Example 1:
+              student: 0
+              text: string
+              file: 'http://example.com'
+          description: ''
+    parameters: []
+  '/teacher/messages/{id}/':
+    parameters:
+      - type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Получение конкретного сообщения для репетитора
+      tags:
+        - Репетиторы
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                student_full_name: string
+                teacher: string
+                sender: teacher
+                sender_photo: 'http://example.com'
+                timestamp: '2019-08-24T14:15:22Z'
+                text: string
+                file: 'http://example.com'
+            properties:
+              id:
+                type: string
+                format: uuid
+              student_full_name:
+                type: string
+              teacher:
+                type: string
+              sender:
+                enum:
+                  - teacher
+                  - student
+              sender_photo:
+                type: string
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+          examples:
+            '':
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              student_full_name: string
+              teacher: string
+              sender: teacher
+              sender_photo: string
+              timestamp: '2019-08-24T14:15:22Z'
+              text: string
+              file: 'http://example.com'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-teacher-messages-id
+      description: 'Эндпоинт доступен только для пользователя-репетитора, который создал сообщение.'
+    patch:
+      summary: Изменение сообшения
+      operationId: patch-teacher-messages-id
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                student_full_name: string
+                teacher: string
+                sender: teacher
+                sender_photo: string
+                timestamp: '2019-08-24T14:15:22Z'
+                text: string
+                file: 'http://example.com'
+            properties:
+              id:
+                type: string
+                format: uuid
+              student_full_name:
+                type: string
+              teacher:
+                type: string
+              sender:
+                enum:
+                  - teacher
+                  - student
+              sender_photo:
+                type: string
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+          examples:
+            '':
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              student_full_name: string
+              teacher: string
+              sender: teacher
+              sender_photo: string
+              timestamp: '2019-08-24T14:15:22Z'
+              text: string
+              file: 'http://example.com'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: 'Доступно только для пользователя-репетитора, создателя сообщения.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                student: 0
+                text: string
+                file: 'http://example.com'
+            properties:
+              student:
+                type: integer
+              text:
+                type: string
+              file:
+                type: string
+                x-nullable: true
+          x-examples:
+            '':
+              student: 0
+              text: string
+              file: string
+    delete:
+      summary: Удаление сообщения репетитора
+      operationId: delete-teacher-messages-id
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: 'Эндпоинт доступен только для пользователя-репетитора, который создал сообщение.'
+  /student/messages/:
+    get:
+      summary: Получение сообщений для ученика
+      tags:
+        - Репетиторы
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                count: 5
+                next: null
+                previous: null
+                results:
+                  - id: 5062f74b-df34-4d2a-9609-615b6c817a6f
+                    student_full_name: Учеников Andrew
+                    teacher: Lacostovich Novak
+                    sender: teacher
+                    sender_photo: null
+                    timestamp: '2023-06-14T17:25:10.448932'
+                    text: Dude!
+                    file: null
+                  - id: 8a89c589-6d70-49c3-93cb-3aef04b8859d
+                    student_full_name: Учеников Andrew
+                    teacher: Lacostovich Novak
+                    sender: teacher
+                    sender_photo: null
+                    timestamp: '2023-06-15T12:30:49.532076'
+                    text: Dude
+                    file: null
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    teacher_full_name:
+                      type: string
+                      x-stoplight:
+                        id: wt452xgsawf9y
+                    student:
+                      type: string
+                      x-stoplight:
+                        id: z1em5y60kraa3
+                    sender:
+                      enum:
+                        - teacher
+                        - sender
+                    sender_photo:
+                      type: string
+                      format: uri
+                      x-nullable: true
+                    timestamp:
+                      type: string
+                      format: date-time
+                    text:
+                      type: string
+                    file:
+                      type: string
+                      format: uri
+                      x-nullable: true
+          examples:
+            '':
+              count: 0
+              next: 'http://example.com'
+              previous: 'http://example.com'
+              results:
+                - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  teacher_full_name: string
+                  student: string
+                  sender: teacher
+                  sender_photo: 'http://example.com'
+                  timestamp: '2019-08-24T14:15:22Z'
+                  text: string
+                  file: 'http://example.com'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-student-messages
+      description: Эндпоинт доступен только для пользователей учеников. Есть пагинация. Также имеется возможность фильтрации по репетиторам и тексту.
+      parameters:
+        - type: string
+          in: query
+          name: page
+          description: Страница
+        - type: string
+          in: query
+          name: text
+          description: Текст
+        - type: string
+          in: query
+          name: teacher
+          description: ID репетитора
+    post:
+      summary: Создание сообщения
+      operationId: post-student-messages
+      responses:
+        '200':
+          description: OK
+          examples:
+            Example 1:
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              teacher_full_name: string
+              student: string
+              sender: teacher
+              sender_photo: 'http://example.com'
+              timestamp: '2019-08-24T14:15:22Z'
+              text: string
+              file: 'http://example.com'
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: e45b57d8-a428-435d-9eb6-57bee602cbf9
+                student_full_name: Авобин Иван
+                teacher: Lacostovich Novak
+                sender: teacher
+                sender_photo: null
+                timestamp: '2023-07-06T00:24:56.203682'
+                text: текст
+                file: null
+            properties:
+              id:
+                type: string
+                format: uuid
+              teacher_full_name:
+                type: string
+                x-stoplight:
+                  id: xkt5kemw2y0qm
+              student:
+                type: string
+                x-stoplight:
+                  id: flkflijv3mx56
+              sender:
+                enum:
+                  - teacher
+                  - sender
+              sender_photo:
+                type: string
+                format: uri
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+                x-nullable: true
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: Доступно только для ученика. При создании ученик выбирает репетитора из списка его репетиторов.
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: e45b57d8-a428-435d-9eb6-57bee602cbf9
+                student_full_name: Авобин Иван
+                teacher: Lacostovich Novak
+                sender: teacher
+                sender_photo: null
+                timestamp: '2023-07-06T00:24:56.203682'
+                text: текст
+                file: null
+            properties:
+              student:
+                type: integer
+                x-stoplight:
+                  id: yg1z5guu05e5d
+                description: Id репетитора
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+                x-nullable: true
+            required:
+              - student
+              - text
+          x-examples:
+            Example 1:
+              student: 0
+              text: string
+              file: 'http://example.com'
+          description: ''
+    parameters: []
+  '/student/messages/{id}/':
+    parameters:
+      - type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Получение конкретного сообщения для ученика
+      tags:
+        - Репетиторы
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                student_full_name: string
+                teacher: string
+                sender: teacher
+                sender_photo: 'http://example.com'
+                timestamp: '2019-08-24T14:15:22Z'
+                text: string
+                file: 'http://example.com'
+            properties:
+              id:
+                type: string
+                format: uuid
+              teacher_full_name:
+                type: string
+                x-stoplight:
+                  id: ouwvrqroahqt3
+              student:
+                type: string
+                x-stoplight:
+                  id: as55s7vfxznws
+              sender:
+                enum:
+                  - teacher
+                  - student
+              sender_photo:
+                type: string
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+          examples:
+            '':
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              teacher_full_name: string
+              student: string
+              sender: teacher
+              sender_photo: string
+              timestamp: '2019-08-24T14:15:22Z'
+              text: string
+              file: 'http://example.com'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      operationId: get-student-messages-id
+      description: 'Эндпоинт доступен только для пользователя-ученика, который создал сообщение.'
+    patch:
+      summary: Изменение сообшения
+      operationId: patch-student-messages-id
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                student_full_name: string
+                teacher: string
+                sender: teacher
+                sender_photo: string
+                timestamp: '2019-08-24T14:15:22Z'
+                text: string
+                file: 'http://example.com'
+            properties:
+              id:
+                type: string
+                format: uuid
+              teacher_full_name:
+                type: string
+                x-stoplight:
+                  id: 4tlndla4qct42
+              student:
+                type: string
+                x-stoplight:
+                  id: t578ipvlk49l6
+              sender:
+                enum:
+                  - teacher
+                  - student
+              sender_photo:
+                type: string
+                x-nullable: true
+              timestamp:
+                type: string
+                format: date-time
+              text:
+                type: string
+              file:
+                type: string
+                format: uri
+          examples:
+            '':
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              teacher_full_name: string
+              student: string
+              sender: teacher
+              sender_photo: string
+              timestamp: '2019-08-24T14:15:22Z'
+              text: string
+              file: 'http://example.com'
+        '400':
+          $ref: '#/responses/ValidationError'
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: 'Доступно только для пользователя-ученика, создателя сообщения.'
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                student: 0
+                text: string
+                file: 'http://example.com'
+            properties:
+              teacher:
+                type: integer
+                x-stoplight:
+                  id: swwhvdsiw4a3u
+              text:
+                type: string
+              file:
+                type: string
+                x-nullable: true
+          x-examples:
+            '':
+              student: 0
+              text: string
+              file: string
+    delete:
+      summary: Удаление сообщения репетитора
+      operationId: delete-student-messages-id
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      tags:
+        - Репетиторы
+      description: 'Эндпоинт доступен только для пользователя-ученика, который создал сообщение.'
+  /user/homeworks/number/:
+    get:
+      operationId: user_homeworks_number_list
+      description: |-
+        <p>
+        Возвращает количество ДЗ для пользователя (как репетитора так и для ученика), в которых он учитывается. Эндпоинт доступен для всех авторизованных пользователей. 
+        </p>
+        <p>
+        Есть возможность фильтрации данных по статусам, учителям (для учеников), по ученикам (для учителей) и предметам, по которым назначаются уроки.
+        </p>
+        <p>
+        Отфильтрованные данные групируются по ученикам для репетиторов и по репетиторам для учеников. Таким образом, на выходе мы имеем количество дз, возможно отфильтрованные по одному из параметров, к примеру это 
+        </p>  
+      parameters:
+        - name: teacher
+          in: query
+          required: false
+          type: number
+          description: 'идентификатор пользователя-учителя, по которому необходимо осуществить фильтрацию'
+        - name: student
+          in: query
+          description: 'идентификатор фиктивного ученика, по которому необходимо осуществить фильтрацию'
+          required: false
+          type: number
+        - name: status
+          in: query
+          description: 'название статуса, по которому осуществляется фильтрация'
+          required: false
+          type: string
+        - type: number
+          in: query
+          name: subject
+          description: 'идентификатор предмета, по которому нужно осуществить фильтрацию'
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                homeworks:
+                  - status: sended
+                    full_name: Авобин Иван
+                    count: 1
+                  - status: sended
+                    full_name: Учеников Andrew
+                    count: 1
+            properties:
+              homeworks:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    status:
+                      enum:
+                        - sended
+                        - done
+                        - accepted
+                    full_name:
+                      type: string
+                    count:
+                      type: integer
+          examples:
+            '':
+              homeworks:
+                - status: sended
+                  full_name: string
+                  count: 0
+        '401':
+          $ref: '#/responses/AuthenticationError'
+        '403':
+          $ref: '#/responses/PermissionDenied'
+      summary: Получение количества ДЗ
+      tags:
+        - Репетиторы
+        - Ученики
+    parameters: []
 definitions:
   TokenObtainPair:
     type: object
