@@ -1,0 +1,641 @@
+openapi: 3.0.2
+servers:
+  - description: API
+    url: 'http://89.108.102.170/api'
+info:
+  title: pockets
+  version: 0.1.0
+tags:
+  - name: auth
+    description: Auth namespace
+  - name: users
+    description: Users namespace
+  - name: pockets
+    description: Pockets namespace
+  - name: transactions
+  - name: categories
+paths:
+  /auth/register/:
+    post:
+      tags:
+        - auth
+      summary: Registration
+      requestBody:
+        $ref: '#/components/requestBodies/RegistrationRequestBody'
+      responses:
+        '201':
+          $ref: '#/components/responses/Registration201'
+        '400':
+          $ref: '#/components/responses/Registration400'
+  /auth/token/:
+    post:
+      tags:
+        - auth
+      summary: Obtain tokens pair
+      requestBody:
+        $ref: '#/components/requestBodies/TokenObtainRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenObtain200'
+        '400':
+          $ref: '#/components/responses/TokenObtain400'
+    parameters: []
+  /auth/token/refresh/:
+    post:
+      tags:
+        - auth
+      summary: Obtain tokens pair
+      requestBody:
+        $ref: '#/components/requestBodies/TokenRefreshRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenObtain200'
+        '400':
+          $ref: '#/components/responses/TokenRefresh400'
+    parameters: []
+  /users/me:
+    get:
+      tags:
+        - users
+      summary: User info
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/UsersMe200'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /pockets/transactions/:
+    get:
+      tags:
+        - pockets
+        - transactions
+      summary: Transactions list
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: number
+          required: false
+        - in: query
+          name: offset
+          schema:
+            type: number
+          required: false
+      responses:
+        '200':
+          $ref: '#/components/responses/Unauthorized'
+        '401':
+          description: Unauthorized
+    post:
+      tags:
+        - pockets
+        - transactions
+      summary: Transaction Create
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/TransactionCreateRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/Transactions200'
+        '400':
+          $ref: '#/components/responses/TransactionCreate400'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  '/pockets/transactions/{transaction_id}/':
+    get:
+      tags:
+        - pockets
+        - transactions
+      summary: Transaction retrieve
+      parameters:
+        - name: transaction_id
+          in: path
+          schema:
+            type: number
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Transactions200'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
+    put:
+      tags:
+        - pockets
+        - transactions
+      summary: Transaction update
+      parameters:
+        - name: transaction_id
+          in: path
+          schema:
+            type: number
+          required: true
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/TransactionCreateRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/Transactions200'
+        '400':
+          $ref: '#/components/responses/TransactionCreate400'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
+    patch:
+      tags:
+        - pockets
+        - transactions
+      summary: Transaction partial update
+      parameters:
+        - name: transaction_id
+          in: path
+          schema:
+            type: number
+          required: true
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/TransactionCreateRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/Transactions200'
+        '400':
+          $ref: '#/components/responses/TransactionCreate400'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - pockets
+        - transactions
+      summary: Transaction delete
+      parameters:
+        - name: transaction_id
+          in: path
+          schema:
+            type: number
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '404':
+          $ref: '#/components/responses/Unauthorized'
+  /pockets/transactions/global/:
+    get:
+      tags:
+        - pockets
+        - transactions
+      summary: Transactions global
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/TransactionGlobal200'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /pockets/categories/:
+    get:
+      tags:
+        - pockets
+        - categories
+      summary: Categories list
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoriesList200'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - pockets
+        - categories
+      summary: Categoriy create
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/CategoryCreateRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoriesList200'
+        '400':
+          $ref: '#/components/responses/CategoryCreate400'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  '/pockets/categories/{category_id}/':
+    get:
+      tags:
+        - pockets
+        - categories
+      summary: Category retrieve
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category_id
+          in: path
+          schema:
+            type: number
+          required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/Categories200'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
+    put:
+      tags:
+        - pockets
+        - categories
+      summary: Category update
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category_id
+          in: path
+          schema:
+            type: number
+          required: true
+      requestBody:
+        $ref: '#/components/requestBodies/CategoryCreateRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoriesList200'
+        '400':
+          $ref: '#/components/responses/CategoryCreate400'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
+    patch:
+      tags:
+        - pockets
+        - categories
+      summary: Category partial update
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category_id
+          in: path
+          schema:
+            type: number
+          required: true
+      requestBody:
+        $ref: '#/components/requestBodies/CategoryCreateRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoriesList200'
+        '400':
+          $ref: '#/components/responses/CategoryCreate400'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - pockets
+        - categories
+      summary: Category delete
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category_id
+          in: path
+          schema:
+            type: number
+          required: true
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
+  /pockets/categories/transactions-by-categories/:
+    get:
+      tags:
+        - pockets
+        - categories
+      summary: Transaction sums by categories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoriesWithExpensesList200'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Decimal:
+      type: string
+      example: '1000.00'
+    CategoryCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        category_type:
+          type: string
+          enum:
+            - income
+            - expense
+    CategoryBase:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: number
+        - $ref: '#/components/schemas/CategoryCreate'
+    CategoryWithExpensesSums:
+      allOf:
+        - $ref: '#/components/schemas/CategoryBase'
+        - type: object
+          properties:
+            transactions_sum:
+              $ref: '#/components/schemas/Decimal'
+    TransactionRetrieve:
+      type: object
+      properties:
+        id:
+          type: number
+        category:
+          $ref: '#/components/schemas/CategoryBase'
+        transaction_date:
+          type: string
+          format: date
+        amount:
+          $ref: '#/components/schemas/Decimal'
+  requestBodies:
+    RegistrationRequestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+      required: true
+    TokenObtainRequestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                format: email
+              password:
+                type: string
+                format: password
+      required: true
+    TokenRefreshRequestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              refresh:
+                type: string
+      required: true
+    TransactionCreateRequestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              category:
+                type: number
+                description: category id
+              transaction_date:
+                type: string
+                format: date
+              amount:
+                type: number
+      required: true
+    CategoryCreateRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CategoryCreate'
+  responses:
+    Registration201:
+      description: Created
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              email:
+                type: string
+    Registration400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: array
+                items:
+                  type: string
+                  example: Пользователь с таким именем уже существует.
+              emain:
+                type: array
+                items:
+                  type: string
+                  example: Пользователь с таким Email уже существует.
+    TokenObtain200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              refresh:
+                type: string
+              access:
+                type: string
+            x-examples:
+              Example 1:
+                refresh: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY5MTQwNTY1NiwiaWF0IjoxNjg4ODEzNjU2LCJqdGkiOiJjMzhhNzBlODcxMDc0NTlkYmVlY2E0YWM1YjIzN2Q0ZSIsInVzZXJfaWQiOjF9.lGuzUXlL3tXd50o7Xahjn-eAglyTzpfOWGhxrNw1abk
+                access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg4ODE5NjU2LCJpYXQiOjE2ODg4MTM2NTYsImp0aSI6ImFiNTA5M2NkYzFhNTRhMWNiMzc0MWM5Yjk2ZGY0MzUxIiwidXNlcl9pZCI6MX0.H44_SSDj6f06wwC8A7-lCxp6eeZC97Da8r3nEqE8GfY
+    TokenObtain400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: No active account found with the given credentials
+    TokenRefresh400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: Token is invalid or expired
+              code:
+                type: string
+                example: token_not_valid
+    UsersMe200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+    TransactionsList200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              count:
+                type: number
+              next:
+                type: string
+                format: uri
+                nullable: true
+              previous:
+                type: string
+                format: uri
+                nullable: true
+              result:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionRetrieve'
+    Transactions200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransactionRetrieve'
+    TransactionCreate400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              amount:
+                type: array
+                items:
+                  type: string
+                  example: 'Убедитесь, что это значение больше либо равно 0.01.'
+              category:
+                type: array
+                items:
+                  type: string
+                  example: У пользователя нет такой категории
+    TransactionGlobal200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              total_income:
+                $ref: '#/components/schemas/Decimal'
+              total_expenses:
+                $ref: '#/components/schemas/Decimal'
+    CategoriesList200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/CategoryBase'
+    Categories200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CategoryBase'
+    CategoryCreate400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: array
+                items:
+                  type: string
+                  example: У пользоваетля уже существует категория с таким названием и типом
+              category_type:
+                type: array
+                items:
+                  type: string
+                  example: Значения нет среди допустимых вариантов.
+    CategoriesWithExpensesList200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/CategoryWithExpensesSums'
+    Unauthorized:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+              messages:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    token_class:
+                      type: string
+                    token_type:
+                      type: string
+                    message:
+                      type: string
+            x-examples:
+              Example 1:
+                detail: Данный токен недействителен для любого типа токена
+                code: token_not_valid
+                messages:
+                  - token_class: AccessToken
+                    token_type: access
+                    message: Токен недействителен или просрочен
+          examples: {}
