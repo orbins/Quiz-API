@@ -680,16 +680,6 @@ components:
         application/json:
           schema:
             type: object
-            x-examples:
-              Example 1:
-                count: 2
-                next: null
-                previous: null
-                results:
-                  - category: Одежда
-                    transactions_sum: '934.00'
-                  - category: Продукты
-                    transactions_sum: '1350.00'
             properties:
               count:
                 type: integer
@@ -706,7 +696,6 @@ components:
                       type: string
                     transactions_sum:
                       $ref: '#/components/schemas/Decimal'
-          examples: {}
     TransactionBalance200:
       description: Example response
       content:
