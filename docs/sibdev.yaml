@@ -217,7 +217,7 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          $ref: '#/components/responses/TransactionGlobal200'
+          $ref: '#/components/responses/TransactionBalance200'
         '401':
           $ref: '#/components/responses/Unauthorized'
       x-stoplight:
@@ -284,7 +284,7 @@ paths:
           required: true
       responses:
         '200':
-          $ref: '#/components/responses/Categories200'
+          $ref: '#/components/responses/CategoriesWithExpensesList200'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
