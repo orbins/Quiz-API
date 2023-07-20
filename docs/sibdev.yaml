@@ -86,9 +86,9 @@ paths:
           required: false
       responses:
         '200':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/TransactionsList200'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
     post:
       tags:
         - pockets
@@ -191,9 +191,9 @@ paths:
         '204':
           description: No Content
         '401':
-          description: Unauthorized
-        '404':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
   /pockets/transactions/global/:
     get:
       tags:
@@ -207,6 +207,38 @@ paths:
           $ref: '#/components/responses/TransactionGlobal200'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /pockets/transactions/balance/:
+    get:
+      tags:
+        - pockets
+        - transactions
+      summary: Balance
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/TransactionGlobal200'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      x-stoplight:
+        id: q6ybnmh1ec0hf
+    parameters: []
+  /pockets/transactions/expenses-by-categories/:
+    get:
+      tags:
+        - pockets
+        - transactions
+      summary: Expenses by categories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/ExpensesByCategories200'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      x-stoplight:
+        id: ymucqk0jc9q1t
+    parameters: []
   /pockets/categories/:
     get:
       tags:
@@ -217,7 +249,7 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          $ref: '#/components/responses/CategoriesList200'
+          $ref: '#/components/responses/CategoriesWithExpensesList200'
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
@@ -325,12 +357,12 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           description: Not Found
-  /pockets/categories/transactions-by-categories/:
+  /pockets/categories/top-three/:
     get:
       tags:
         - pockets
         - categories
-      summary: Transaction sums by categories
+      summary: Categories top three
       security:
         - bearerAuth: []
       responses:
@@ -338,6 +370,9 @@ paths:
           $ref: '#/components/responses/CategoriesWithExpensesList200'
         '401':
           $ref: '#/components/responses/Unauthorized'
+      x-stoplight:
+        id: bo0ce56do603y
+    parameters: []
 components:
   securitySchemes:
     bearerAuth:
@@ -353,11 +388,6 @@ components:
       properties:
         name:
           type: string
-        category_type:
-          type: string
-          enum:
-            - income
-            - expense
     CategoryBase:
       allOf:
         - type: object
@@ -365,6 +395,7 @@ components:
             id:
               type: number
         - $ref: '#/components/schemas/CategoryCreate'
+      x-examples: {}
     CategoryWithExpensesSums:
       allOf:
         - $ref: '#/components/schemas/CategoryBase'
@@ -372,6 +403,11 @@ components:
           properties:
             transactions_sum:
               $ref: '#/components/schemas/Decimal'
+      x-examples:
+        Example 1:
+          id: 0
+          name: string
+          transactions_sum: '1000.00'
     TransactionRetrieve:
       type: object
       properties:
@@ -384,6 +420,12 @@ components:
           format: date
         amount:
           $ref: '#/components/schemas/Decimal'
+        transaction_type:
+          x-stoplight:
+            id: 8593dqt17abf1
+          enum:
+            - income
+            - expense
   requestBodies:
     RegistrationRequestBody:
       content:
@@ -407,7 +449,6 @@ components:
                 format: email
               password:
                 type: string
-                format: password
       required: true
     TokenRefreshRequestBody:
       content:
@@ -462,7 +503,7 @@ components:
                 items:
                   type: string
                   example: Пользователь с таким именем уже существует.
-              emain:
+              email:
                 type: array
                 items:
                   type: string
@@ -476,12 +517,10 @@ components:
             properties:
               refresh:
                 type: string
+                description: refresh token
               access:
                 type: string
-            x-examples:
-              Example 1:
-                refresh: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY5MTQwNTY1NiwiaWF0IjoxNjg4ODEzNjU2LCJqdGkiOiJjMzhhNzBlODcxMDc0NTlkYmVlY2E0YWM1YjIzN2Q0ZSIsInVzZXJfaWQiOjF9.lGuzUXlL3tXd50o7Xahjn-eAglyTzpfOWGhxrNw1abk
-                access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg4ODE5NjU2LCJpYXQiOjE2ODg4MTM2NTYsImp0aSI6ImFiNTA5M2NkYzFhNTRhMWNiMzc0MWM5Yjk2ZGY0MzUxIiwidXNlcl9pZCI6MX0.H44_SSDj6f06wwC8A7-lCxp6eeZC97Da8r3nEqE8GfY
+                description: access token
     TokenObtain400:
       description: Bad request
       content:
@@ -617,8 +656,10 @@ components:
             properties:
               detail:
                 type: string
+                example: Данный токен недействителен для любого типа токена
               code:
                 type: string
+                example: token_not_valid
               messages:
                 type: array
                 items:
@@ -626,16 +667,55 @@ components:
                   properties:
                     token_class:
                       type: string
+                      example: AccessToken
                     token_type:
                       type: string
+                      example: access
                     message:
                       type: string
+                      example: Токен недействителен или просрочен
+    ExpensesByCategories200:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
             x-examples:
               Example 1:
-                detail: Данный токен недействителен для любого типа токена
-                code: token_not_valid
-                messages:
-                  - token_class: AccessToken
-                    token_type: access
-                    message: Токен недействителен или просрочен
+                count: 2
+                next: null
+                previous: null
+                results:
+                  - category: Одежда
+                    transactions_sum: '934.00'
+                  - category: Продукты
+                    transactions_sum: '1350.00'
+            properties:
+              count:
+                type: integer
+              next:
+                nullable: true
+              previous:
+                nullable: true
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    category:
+                      type: string
+                    transactions_sum:
+                      $ref: '#/components/schemas/Decimal'
           examples: {}
+    TransactionBalance200:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                balance: '-1284.00'
+            properties:
+              balance:
+                $ref: '#/components/schemas/Decimal'
