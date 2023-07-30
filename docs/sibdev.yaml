@@ -438,7 +438,7 @@ paths:
       x-stoplight:
         id: azi2z42ojpupp
     parameters: []
-  '/goals/mine/{goal_id}':
+  '/goals/mine/{goal_id}/':
     parameters:
       - schema:
           type: string
@@ -452,7 +452,7 @@ paths:
         - mine
       responses:
         '200':
-          $ref: '#/components/responses/GoalsList200'
+          $ref: '#/components/responses/Goals200'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -531,6 +531,59 @@ paths:
         - bearerAuth: []
       x-stoplight:
         id: pp650rnkvi7kv
+  /goals/mine/refill/:
+    post:
+      summary: Пополнение цели
+      operationId: post-goals-mine-refill
+      responses:
+        '200':
+          $ref: '#/components/responses/GoalRefill200'
+        '400':
+          $ref: '#/components/responses/GoalRefill400'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+      tags:
+        - goals
+        - mine
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalRefill'
+        description: ''
+  /goals/mine/complete/:
+    patch:
+      summary: Завершение цели
+      operationId: patch-goals-mine-complete
+      responses:
+        '200':
+          $ref: '#/components/responses/Goals200'
+        '400':
+          $ref: '#/components/responses/GoalComplete400'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+      x-stoplight:
+        id: rheez1wfifmwt
+      tags:
+        - goals
+        - mine
+      description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                goal_id:
+                  type: integer
+                  x-stoplight:
+                    id: oo15wibzz9vo3
 components:
   securitySchemes:
     bearerAuth:
@@ -593,6 +646,43 @@ components:
           type: integer
         percent:
           type: integer
+    GoalRefill:
+      title: GoalRefill
+      x-stoplight:
+        id: 53x5p3k15qd4e
+      type: object
+      properties:
+        goal:
+          type: integer
+          x-stoplight:
+            id: ftmq55ra1gtjh
+        amount:
+          $ref: '#/components/schemas/Decimal'
+    GoalCreate:
+      type: object
+      x-examples:
+        Example 1:
+          name: string
+          target_amount: 0
+          start_amount: 0
+          category: 0
+          term: 0
+          percent: 0
+      properties:
+        name:
+          type: string
+        target_amount:
+          $ref: '#/components/schemas/Decimal'
+        start_amount:
+          $ref: '#/components/schemas/Decimal'
+        category:
+          type: integer
+        term:
+          type: integer
+        percent:
+          type: integer
+          minimum: 0
+          maximum: 100
   requestBodies:
     RegistrationRequestBody:
       content:
@@ -654,29 +744,21 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            x-examples:
-              Example 1:
-                id: 5
-                name: Накопить
-                target_amount: 102000
-                start_amount: 500
-                category: 1
-                term: 3
-                percent: 7
-            properties:
-              name:
-                type: string
-              target_amount:
-                type: integer
-              start_amount:
-                type: integer
-              category:
-                type: integer
-              term:
-                type: integer
-              percent:
-                type: integer
+            $ref: '#/components/schemas/GoalCreate'
+          examples:
+            Example 1:
+              value:
+                name: string
+                target_amount: 0
+                start_amount: 0
+                category: 0
+                term: 0
+                percent: 0
+    GoalRefillRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GoalRefill'
   responses:
     Registration201:
       description: Created
@@ -997,3 +1079,52 @@ components:
                 type: array
                 items:
                   type: string
+    GoalRefill200:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              goal:
+                $ref: '#/components/schemas/GoalRetrieve'
+              amount:
+                $ref: '#/components/schemas/Decimal'
+    GoalRefill400:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              goal:
+                type: array
+                items:
+                  type: string
+              amount:
+                type: array
+                items:
+                  type: string
+            x-examples:
+              Example 1:
+                goal:
+                  - Обязательное поле.
+                amount:
+                  - Обязательное поле.
+    GoalComplete400:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              goal_id:
+                type: array
+                items:
+                  type: string
+            x-examples:
+              Example 1:
+                goal_id:
+                  - Обязательное поле.
