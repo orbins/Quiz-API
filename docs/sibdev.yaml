@@ -646,6 +646,10 @@ components:
           type: integer
         percent:
           type: integer
+        status:
+          type: boolean
+          x-stoplight:
+            id: 1f98c5tjdlfzy
     GoalRefill:
       title: GoalRefill
       x-stoplight:
