@@ -1,12 +1,17 @@
 swagger: '2.0'
-x-stoplight:
-  id: 1bhmz1omi0ski
 info:
   title: TutorOffice API
   version: v1
   contact:
     name: Tkachenko Danil
     email: orwellj@mail.ru
+tags:
+  - name: Пользователи
+    description: пользователи
+  - name: Ученики
+    description: ученики
+  - name: Репетиторы
+    description: репетиторы
 host: '127.0.0.1:8000'
 schemes:
   - http
@@ -20,10 +25,8 @@ securityDefinitions:
     name: Authorization
     type: apiKey
     in: header
-security:
-  - Basic: []
 paths:
-  /register/:
+  /register:
     post:
       operationId: register
       description: |-
@@ -66,8 +69,6 @@ paths:
             properties:
               success:
                 type: string
-                x-stoplight:
-                  id: nsvyeqhmay9fv
                 example: Регистрация прошла успешно! Для входа в аккаунт Вам было отправлено письмо с подтверждением на почту!
                 description: Сообщение об успешной регистрации
           examples:
@@ -79,7 +80,7 @@ paths:
       tags:
         - Пользователи
     parameters: []
-  '/activate/{token}/':
+  '/activate/{token}':
     parameters:
       - name: token
         in: path
@@ -97,16 +98,10 @@ paths:
             properties:
               refresh:
                 type: string
-                x-stoplight:
-                  id: 771sweuqslzhr
               access:
                 type: string
-                x-stoplight:
-                  id: mtcj1k0md0vk0
               role:
                 type: string
-                x-stoplight:
-                  id: iej8zjee2j5zq
           examples:
             Активация для ученика:
               refresh: string
@@ -125,7 +120,7 @@ paths:
       parameters: []
       tags:
         - Пользователи
-  /profile/:
+  /profile:
     get:
       operationId: profile_read
       description: Получение профиля текущего пользователя. Эндпоинт доступен только для <b>текущего</b> авторизованного пользователя.
@@ -185,7 +180,7 @@ paths:
       tags:
         - Пользователи
     parameters: []
-  /login/:
+  /login:
     post:
       operationId: login
       description: |
@@ -275,7 +270,7 @@ paths:
       tags:
         - Токены
     parameters: []
-  /refresh/:
+  /refresh:
     post:
       operationId: refresh
       description: 'Принимает refresh-токен и в случае, если он верный, возвращает пару access и refresh.'
@@ -301,7 +296,7 @@ paths:
       tags:
         - Токены
     parameters: []
-  /password-reset/:
+  /password-reset:
     post:
       summary: Сброс пароля
       operationId: post-password-reset
@@ -311,7 +306,7 @@ paths:
       tags:
         - Сброс
       description: 'Сброс пароля. Для осуществления операции необходимо передать почту, к которой привязан аккаунт пользователя. В случае если такой аккаунт существует на него будет отправлено письмо с подтверждением сброса. В ином случае письмо попросту не будет отправлено.'
-  /password-reset/done/:
+  /password-reset/done:
     get:
       summary: Уведомление о сбросе
       tags:
@@ -325,7 +320,7 @@ paths:
       operationId: password-reset-done
       description: 'Шаблон, который возвращается в качестве ответа на ввод пользователем почты для сброса пароля. Чтобы не раскрыать клиентскую базу шаблон возвращается в любом случае, даже если пользователь ввёл почту, которой нет в базе данных. В таком случае письмо с подтверждением сброса попросту не будет отправлено.'
     parameters: []
-  '/password-reset/confirm/{uid}/{token}/':
+  '/password-reset/confirm/{uid}/{token}':
     parameters:
       - type: string
         name: uid
@@ -356,15 +351,11 @@ paths:
             properties:
               new_password1:
                 type: string
-                x-stoplight:
-                  id: 4q9ynd39sr9b2
                 format: password
               new_password2:
                 type: string
-                x-stoplight:
-                  id: ri51no59n4v1c
                 format: password
-  /password-reset/complete/:
+  /password-reset/complete:
     get:
       summary: Пароль успешно сброшен
       tags:
@@ -377,7 +368,7 @@ paths:
             properties: {}
       operationId: password-reset-complete
       description: Возвращает шаболон в случае успешной смены пароля пользователем
-  /subjects/:
+  /subjects:
     get:
       operationId: subjects_list
       description: 'Получение <b>всех</b> предметов, доступно только для <b>репетиторов</b>. Возврщается имя предмета и его id. Имеется пагинация (разбивка данных по страницам).'
@@ -446,12 +437,13 @@ paths:
       tags:
         - Репетиторы
     parameters: []
-  /teacher/subjects/:
+  /teacher/subjects:
     get:
       operationId: teacher_subjects_list
       description: 'Получение предметов текущего пользователя-репетитора. Эндпоинт доступен для всех авторизованных пользователей, которые являются репетиторами. Имеется пагинация (разбивка данных по страницам).'
       parameters:
         - type: string
+          name: page
           in: query
           description: Номер страницы
       responses:
@@ -540,9 +532,7 @@ paths:
                 - 2
                 - 3
               titles:
-                - string
-                - string
-                - string
+                - string string string
         '400':
           $ref: '#/responses/ValidationError'
         '401':
@@ -615,7 +605,7 @@ paths:
                 - 1
                 - 2
                 - 3
-  /teacher/students/:
+  /teacher/students:
     get:
       operationId: teacher_students_list
       description: |-
@@ -820,7 +810,7 @@ paths:
         - Репетиторы
       summary: Создание фиктивного ученика
     parameters: []
-  '/teacher/students/{id}/':
+  '/teacher/students/{id}':
     patch:
       operationId: teacher_student_partial_update
       description: 'Обновление данных фиктивного ученика репетитора. Вне зависимости от привязки фиктивного с пользователем из базы данных, учитель изменяет только данные самого фиктивного ученика, никак не затрагивая связанного с ним пользователя-ученика. Эндпоинт доступен только для пользователя-репетитора, который создал ученика. Нельзя обновить почту для ученика, к которому уже привязан реальный пользователь.'
@@ -900,9 +890,9 @@ paths:
                 format: email
               bind:
                 enum:
-                  - Привязан (related)
-                  - Не привязан (unrelated)
-                  - Ожидание ответа (awaiting)
+                  - related
+                  - unrelated
+                  - awaiting
                 readOnly: true
           examples:
             Измененные данные ученика:
@@ -1010,7 +1000,7 @@ paths:
       tags:
         - Репетиторы
       description: 'Получение полной информации о конкретном фиктивном ученике репетитора. Эндпоинт доступен только для пользователя-репетитора, который создал ученика. '
-  '/relate/student/{id}/':
+  '/relate/student/{id}':
     post:
       operationId: relate_student_create
       description: |-
@@ -1027,8 +1017,6 @@ paths:
             properties:
               id:
                 type: string
-                x-stoplight:
-                  id: djduae9801ksd
       responses:
         '200':
           description: ''
@@ -1117,7 +1105,7 @@ paths:
         required: true
         type: string
         description: идентификатор ученика репетитора
-  '/confirm/{token}/':
+  '/confirm/{token}':
     parameters:
       - name: token
         in: path
@@ -1161,7 +1149,7 @@ paths:
       description: Подтверждение учеником привязки к репетитору. При повторном запросе с одним и тем же токеном в качестве параметра эндпоинт становится недоступным для использования.
       tags:
         - Ученики
-  /student/teachers/:
+  /student/teachers:
     get:
       operationId: student_teachers_list
       description: Просмотр списка репетиторов ученика. Эндпоинт доступен только для пользователей-учеников. Имеется пагинация (разбивка данных по страницам).
@@ -1218,21 +1206,7 @@ paths:
                       type: array
                       items:
                         type: string
-          examples:
-            Список репетиторов ученика:
-              count: 1
-              next: null
-              previous: null
-              results:
-                - id: 69c2eb05-89ef-48c6-b0d3-a2277b67b16a
-                  first_name: string
-                  last_name: string
-                  patronymic_name: string
-                  photo: null
-                  subjects:
-                    - Computer Science
-                    - История
-                    - Математика
+          examples: {}
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -1241,7 +1215,7 @@ paths:
       tags:
         - Ученики
     parameters: []
-  '/student/teachers/{id}/':
+  '/student/teachers/{id}':
     get:
       operationId: student_teachers_read
       description: Просмотр отдельно взятого репетитора ученика. Эндпоинт доступен только для пользователей-учеников.
@@ -1254,11 +1228,11 @@ paths:
           examples:
             Репетитор ученика:
               id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-              first_name: string
-              last_name: string
-              patronymic_name: string
+              first_name: Андрей
+              last_name: Степанов
+              patronymic_name: Сергеевич
               email: user@example.com
-              phone: stringstrin
+              phone: '88005553535'
               photo: 'http://example.com'
               subjects:
                 - Computer Science
@@ -1281,7 +1255,7 @@ paths:
         in: path
         required: true
         type: string
-  /user/lessons/number/:
+  /user/lessons/number:
     get:
       operationId: user_lesson_number_list
       description: |-
@@ -1342,8 +1316,6 @@ paths:
                   properties:
                     param:
                       type: string
-                      x-stoplight:
-                        id: 50jrjpgqt9zbx
                       description: 'Параметр по которому происходила фильтрация, по умолчанию это дата, но также может быть предмет, учник или учитель'
                     count:
                       type: integer
@@ -1398,7 +1370,7 @@ paths:
         - Репетиторы
         - Ученики
     parameters: []
-  /user/lessons/list/:
+  /user/lessons/list:
     get:
       operationId: user_lesson_list_list
       description: |-
@@ -1495,8 +1467,6 @@ paths:
                       readOnly: true
                     teacher or student_full_name:
                       type: string
-                      x-stoplight:
-                        id: hndymkqq1clbs
                       readOnly: true
           examples:
             Список уроков для репетитора:
@@ -1585,8 +1555,6 @@ paths:
               teacher_comment:
                 type: string
                 description: комментарий к уроку
-                x-stoplight:
-                  id: br2qbflfla9rh
             required:
               - student
               - subject
@@ -1654,7 +1622,7 @@ paths:
         - Репетиторы
       summary: Создание урока
     parameters: []
-  '/teacher/lessons/{id}/':
+  '/teacher/lessons/{id}':
     get:
       operationId: teacher_lesson_read
       description: 'Возвращает данные о конкретном уроке, имеется возможность чтения, обновления и удаления. Эндпоинт доступен только для пользователя-репетитора, который задействован в уроке.'
@@ -1689,10 +1657,10 @@ paths:
                 format: time
               status:
                 enum:
-                  - Запланирован (planned)
-                  - Отменён (canceled)
-                  - Проведён (done)
-                default: Запланирован (planned)
+                  - planned
+                  - canceled
+                  - done
+                default: planned
               student_full_name:
                 type: string
                 readOnly: true
@@ -1809,7 +1777,7 @@ paths:
               date: string
               start_time: string
               end_time: string
-              status: string
+              status: planned
               student_full_name: string
               subject_title: string
               teacher_comment: string
@@ -1842,7 +1810,7 @@ paths:
         description: A unique integer value identifying this Урок.
         required: true
         type: integer
-  '/student/lessons/{id}/':
+  '/student/lessons/{id}':
     get:
       operationId: student_lessong_get
       description: 'Возвращает данные о конкретном уроке. Эндпоинт доступен только для пользователя-ученика, который задействован в уроке.'
@@ -1893,7 +1861,7 @@ paths:
               date: '2023-07-29'
               start_time: '12:50:00'
               end_time: '15:50:00'
-              status: string
+              status: planned
               teacher: string
               subject_title: string
               student_comment: string
@@ -1962,12 +1930,10 @@ paths:
             properties:
               student_comment:
                 type: string
-                x-stoplight:
-                  id: 45w4hktftgjxa
           x-examples:
             '':
               student_comment: string
-  /teacher/materials/:
+  /teacher/materials:
     get:
       operationId: materials_list
       description: 'Просмотр материалов репетитора. Эндпоинт доступен только для пользователей- репетиторов. Есть пагниация. Также есть фильрация по ID учеников, ID премдетов, типу материала (приватный или публичный), дате.'
@@ -1987,7 +1953,6 @@ paths:
           required: false
           type: string
           description: Тип материал (private/public)
-        - name: page
         - type: string
           in: query
           name: date
@@ -2053,8 +2018,6 @@ paths:
                       description: Ученики
                       x-nullable: true
                       items:
-                        x-stoplight:
-                          id: lis4wjojolqyr
                         type: string
                     subject_title:
                       type: string
@@ -2094,7 +2057,7 @@ paths:
                   student_full_name:
                     - Last_Name First_Name
                   subject_title: string
-                  file: string
+                  file: 'http://127.0.0.1:8000/media/materials/5.jpg'
                   file_type: string
                   file_size: 0
                   text: string
@@ -2104,7 +2067,7 @@ paths:
                   student_full_name:
                     - Last_Name First_Name
                   subject_title: null
-                  file: string
+                  file: 'http://127.0.0.1:8000/media/materials/5.jpg'
                   file_type: string
                   file_size: 0
                   text: string
@@ -2141,8 +2104,6 @@ paths:
                 description: id псевдоучеников
                 x-nullable: true
                 items:
-                  x-stoplight:
-                    id: sx0n9rucbi72v
                   type: integer
               subject:
                 type: integer
@@ -2196,8 +2157,6 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  x-stoplight:
-                    id: 6ph8vw875cf92
                   type: string
               subject_title:
                 type: string
@@ -2224,7 +2183,7 @@ paths:
               student_full_name:
                 - string
               subject_title: string
-              file: string
+              file: 'http://127.0.0.1:8000/media/materials/5.jpg'
               file_type: string
               file_size: 0
               text: string
@@ -2242,7 +2201,7 @@ paths:
       tags:
         - Репетиторы
     parameters: []
-  '/teacher/materials/{id}/':
+  '/teacher/materials/{id}':
     parameters:
       - type: string
         name: id
@@ -2274,8 +2233,6 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  x-stoplight:
-                    id: sirg4hbhctzqa
                   type: string
               subject_title:
                 type: string
@@ -2302,12 +2259,12 @@ paths:
               student_full_name:
                 - string
               subject_title: string
-              file: string
+              file: 'http://127.0.0.1:8000/media/materials/5.jpg'
               file_type: string
               file_size: 0
               text: string
-              material_type: string
-              date: string
+              material_type: private
+              date: '2023-06-04'
         '401':
           $ref: '#/responses/AuthenticationError'
         '403':
@@ -2343,8 +2300,6 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  x-stoplight:
-                    id: gmwt8jbsqcpe4
                   type: string
               subject_title:
                 type: string
@@ -2403,8 +2358,6 @@ paths:
                 type: array
                 x-nullable: true
                 items:
-                  x-stoplight:
-                    id: 5p9ob5mwfey4y
                   type: integer
               subject:
                 type: integer
@@ -2434,7 +2387,7 @@ paths:
       description: 'Удаление материалов репетитора, доступно только для пользователя репетитора'
       tags:
         - Репетиторы
-  /student/materials/:
+  /student/materials:
     get:
       operationId: student_materials_list
       description: 'Просмотр материалов ученика. Эндпоинт доступен только для пользователей-учеников. Есть пагниация. Также есть фильрация по ID репетиторов, ID премдетов, типу материала (приватный или публичный), дате.'
@@ -2454,7 +2407,6 @@ paths:
           required: false
           type: string
           description: Тип материал (private/public)
-        - name: page
         - type: string
           in: query
           name: date
@@ -2549,19 +2501,17 @@ paths:
               previous: 'http://example.com'
               results:
                 - id: 1
-                  teacher:
-                    - Last_Name First_Name
+                  teacher: Last_Name First_Name
                   subject_title: string
-                  file: string
+                  file: 'http://127.0.0.1:8000/media/materials/5.jpg'
                   file_type: string
                   file_size: 0
                   text: string
                   date: '2023-07-24'
                 - id: 2
-                  teacher:
-                    - Last_Name First_Name
+                  teacher: Last_Name First_Name
                   subject_title: null
-                  file: string
+                  file: 'http://127.0.0.1:8000/media/materials/5.jpg'
                   file_type: string
                   file_size: 0
                   text: string
@@ -2574,7 +2524,7 @@ paths:
       tags:
         - Ученики
     parameters: []
-  '/student/materials/{id}/':
+  '/student/materials/{id}':
     parameters:
       - type: string
         name: id
@@ -2604,8 +2554,6 @@ paths:
                 type: integer
               teacher:
                 type: string
-                x-stoplight:
-                  id: wmg20l7sk95jf
                 x-nullable: true
               subject_title:
                 type: string
@@ -2640,7 +2588,7 @@ paths:
       description: 'Доступно только для пользователя-ученика, который связан с этим материалом.'
       tags:
         - Ученики
-  /teacher/homeworks/:
+  /teacher/homeworks:
     get:
       summary: Получение ДЗ для репетитора
       tags:
@@ -2735,7 +2683,7 @@ paths:
               next: 'http://example.com'
               previous: 'http://example.com'
               results:
-                - id: string
+                - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
                   student_full_name: string
                   student_photo: 'http://example.com'
                   timestamp: '2019-08-24T14:15:22Z'
@@ -2853,8 +2801,6 @@ paths:
               subject:
                 type: integer
                 description: ID предметов
-                x-stoplight:
-                  id: cdmgnnuq1r1ni
               text:
                 type: string
               file:
@@ -2876,7 +2822,7 @@ paths:
               file: 'http://example.com'
               status: sended
           description: ''
-  '/teacher/homeworks/{id}/':
+  '/teacher/homeworks/{id}':
     parameters:
       - type: string
         name: id
@@ -3064,7 +3010,7 @@ paths:
       tags:
         - Репетиторы
       description: 'Эндпоинт доступен только для пользователя-репетитора, который создал ДЗ.'
-  /student/homeworks/:
+  /student/homeworks:
     get:
       summary: Получение ДЗ для ученика
       tags:
@@ -3123,13 +3069,9 @@ paths:
                     teacher:
                       type: string
                       description: ФИО ученика
-                      x-stoplight:
-                        id: 5p58t3b7j2q5g
                     teacher_photo:
                       type: string
                       format: uri
-                      x-stoplight:
-                        id: 0u7zcvm968gva
                       x-nullable: true
                     timestamp:
                       type: string
@@ -3163,7 +3105,7 @@ paths:
               next: 'http://example.com'
               previous: 'http://example.com'
               results:
-                - id: string
+                - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
                   teacher: string
                   teacher_photo: 'http://example.com'
                   timestamp: '2019-08-24T14:15:22Z'
@@ -3196,7 +3138,7 @@ paths:
           name: teacher
           description: ID репетитора
     parameters: []
-  '/student/homeworks/{id}/':
+  '/student/homeworks/{id}':
     parameters:
       - type: string
         name: id
@@ -3228,13 +3170,9 @@ paths:
                 format: uuid
               teacher:
                 type: string
-                x-stoplight:
-                  id: iyj5wl3nsy6wq
               teacher_photo:
                 type: string
                 format: uri
-                x-stoplight:
-                  id: atkw383efn41x
                 x-nullable: true
               timestamp:
                 type: string
@@ -3356,8 +3294,6 @@ paths:
             properties:
               reply_file:
                 type: string
-                x-stoplight:
-                  id: noabi51yrln65
                 x-nullable: true
               status:
                 enum:
@@ -3368,7 +3304,7 @@ paths:
             '':
               reply_file: string
               status: accepted
-  /teacher/messages/:
+  /teacher/messages:
     get:
       summary: Получение сообщений для репетитора
       tags:
@@ -3553,8 +3489,6 @@ paths:
             properties:
               student:
                 type: integer
-                x-stoplight:
-                  id: yg1z5guu05e5d
                 description: Id псевдоученика
               text:
                 type: string
@@ -3572,7 +3506,7 @@ paths:
               file: 'http://example.com'
           description: ''
     parameters: []
-  '/teacher/messages/{id}/':
+  '/teacher/messages/{id}':
     parameters:
       - type: string
         name: id
@@ -3732,7 +3666,7 @@ paths:
       tags:
         - Репетиторы
       description: 'Эндпоинт доступен только для пользователя-репетитора, который создал сообщение.'
-  /student/messages/:
+  /student/messages:
     get:
       summary: Получение сообщений для ученика
       tags:
@@ -3785,12 +3719,8 @@ paths:
                       format: uuid
                     teacher_full_name:
                       type: string
-                      x-stoplight:
-                        id: wt452xgsawf9y
                     student:
                       type: string
-                      x-stoplight:
-                        id: z1em5y60kraa3
                     sender:
                       enum:
                         - teacher
@@ -3875,12 +3805,8 @@ paths:
                 format: uuid
               teacher_full_name:
                 type: string
-                x-stoplight:
-                  id: xkt5kemw2y0qm
               student:
                 type: string
-                x-stoplight:
-                  id: flkflijv3mx56
               sender:
                 enum:
                   - teacher
@@ -3925,8 +3851,6 @@ paths:
             properties:
               student:
                 type: integer
-                x-stoplight:
-                  id: yg1z5guu05e5d
                 description: Id репетитора
               text:
                 type: string
@@ -3944,7 +3868,7 @@ paths:
               file: 'http://example.com'
           description: ''
     parameters: []
-  '/student/messages/{id}/':
+  '/student/messages/{id}':
     parameters:
       - type: string
         name: id
@@ -3975,12 +3899,8 @@ paths:
                 format: uuid
               teacher_full_name:
                 type: string
-                x-stoplight:
-                  id: ouwvrqroahqt3
               student:
                 type: string
-                x-stoplight:
-                  id: as55s7vfxznws
               sender:
                 enum:
                   - teacher
@@ -4036,12 +3956,8 @@ paths:
                 format: uuid
               teacher_full_name:
                 type: string
-                x-stoplight:
-                  id: 4tlndla4qct42
               student:
                 type: string
-                x-stoplight:
-                  id: t578ipvlk49l6
               sender:
                 enum:
                   - teacher
@@ -4089,8 +4005,6 @@ paths:
             properties:
               teacher:
                 type: integer
-                x-stoplight:
-                  id: swwhvdsiw4a3u
               text:
                 type: string
               file:
@@ -4114,7 +4028,7 @@ paths:
       tags:
         - Репетиторы
       description: 'Эндпоинт доступен только для пользователя-ученика, который создал сообщение.'
-  /user/homeworks/number/:
+  /user/homeworks/number:
     get:
       operationId: user_homeworks_number_list
       description: |-
@@ -4194,8 +4108,6 @@ paths:
 definitions:
   TokenObtainPair:
     type: object
-    x-stoplight:
-      id: oi5dc9gs8qqgm
     x-examples: {}
     properties:
       email:
@@ -4214,15 +4126,11 @@ definitions:
         format: password
       role:
         type: string
-        x-stoplight:
-          id: vxmjpofs6yjbm
     required:
       - email
       - password
   Material:
     type: object
-    x-stoplight:
-      id: nbexrd7ac4dg6
     properties:
       id:
         title: ID
@@ -4257,8 +4165,6 @@ definitions:
         default: private
   Profile:
     type: object
-    x-stoplight:
-      id: 58y0jwbrbj68t
     x-examples: []
     properties:
       id:
@@ -4324,12 +4230,8 @@ definitions:
         type: string
         readOnly: true
         minLength: 1
-    x-stoplight:
-      id: rz695mqtjmt4h
   Register:
     type: object
-    x-stoplight:
-      id: euzgkice5b9ac
     x-examples: []
     properties:
       id:
@@ -4461,16 +4363,10 @@ definitions:
         readOnly: true
       subjects:
         type: array
-        x-stoplight:
-          id: khpt7pnexldwm
         items:
-          x-stoplight:
-            id: 62w9zsw39tjpx
           type: string
   StudentDetailLesson:
     type: object
-    x-stoplight:
-      id: 6nlhu77clz50r
     x-examples: {}
     properties:
       id:
@@ -4528,7 +4424,6 @@ definitions:
       - date
       - start_time
       - end_time
-      - teacher
   Subject:
     type: object
     x-examples:
@@ -4563,8 +4458,6 @@ definitions:
             - title
   TeacherDetailLesson:
     type: object
-    x-stoplight:
-      id: hldvfkqomiu91
     x-examples: {}
     properties:
       id:
@@ -4573,8 +4466,6 @@ definitions:
         readOnly: true
       student:
         type: integer
-        x-stoplight:
-          id: 7v2z8ry9jna2i
       date:
         title: Дата
         type: string
@@ -4605,17 +4496,12 @@ definitions:
       teacher_comment:
         title: Комментарий
         type: string
-        x-stoplight:
-          id: s834obu63ub9f
     required:
       - date
       - start_time
       - end_time
-      - status
   TeacherStudentDetail - copy:
     type: object
-    x-stoplight:
-      id: 6uxqzs4lsznkt
     x-examples:
       '':
         id: 0
@@ -4669,8 +4555,6 @@ definitions:
         title: Comment
         type: string
         description: Комментарий
-        x-stoplight:
-          id: h3kt6itjad996
       bind:
         title: Привязка
         type: string
@@ -4681,8 +4565,6 @@ definitions:
         description: Привязка
       photo:
         type: string
-        x-stoplight:
-          id: vjs21m53o90en
         format: uri
         x-nullable: true
         readOnly: true
@@ -4692,8 +4574,6 @@ definitions:
       - email
   TeacherStudentDetail - copy 2:
     type: object
-    x-stoplight:
-      id: xz450ne8wf2yo
     x-examples: {}
     properties:
       id:
@@ -4740,16 +4620,12 @@ definitions:
         title: Comment
         type: string
         description: Комментарий
-        x-stoplight:
-          id: o43uttar6zm3o
     required:
       - last_name
       - first_name
       - email
   TeacherStudent - copy:
     type: object
-    x-stoplight:
-      id: 3d4ac9ccbdj43
     x-examples:
       Example 1:
         id: 0
@@ -4787,20 +4663,14 @@ definitions:
         description: Отечество
       level:
         type: string
-        x-stoplight:
-          id: o3wfzy9rjsbph
       photo:
         type: string
-        x-stoplight:
-          id: 1gkwehl75w4t6
         format: uri
     required:
       - last_name
       - first_name
   UserSubject:
     type: object
-    x-stoplight:
-      id: 4c1ov33pucjk9
     properties:
       subjects:
         type: array
@@ -4835,10 +4705,7 @@ definitions:
         detail: Учетные данные не были предоставлены
   ValidationError:
     type: object
-    x-examples:
-      Example 1:
-        field_name:
-          - Обязательное поле.
+    x-examples: {}
     properties:
       field_name:
         type: array
@@ -4851,31 +4718,13 @@ definitions:
 responses:
   PermissionDenied:
     description: Example response
-    content:
-      application/json:
-        schema:
-          properties:
-            id:
-              type: string
     schema:
       $ref: '#/definitions/PermissionDenied'
   AuthenticationError:
     description: Example response
-    content:
-      application/json:
-        schema:
-          properties:
-            id:
-              type: string
     schema:
       $ref: '#/definitions/AuthenticationError'
   ValidationError:
     description: Example response
-    content:
-      application/json:
-        schema:
-          properties:
-            id:
-              type: string
     schema:
       $ref: '#/definitions/ValidationError'
