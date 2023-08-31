@@ -15,7 +15,7 @@ tags:
   - name: transactions
   - name: categories
 paths:
-  /auth/register/:
+  /auth/register:
     post:
       tags:
         - auth
@@ -27,7 +27,10 @@ paths:
           $ref: '#/components/responses/Registration201'
         '400':
           $ref: '#/components/responses/Registration400'
-  /auth/token/:
+      x-stoplight:
+        id: 5spcxak9771tv
+    parameters: []
+  /auth/token:
     post:
       tags:
         - auth
@@ -39,8 +42,10 @@ paths:
           $ref: '#/components/responses/TokenObtain200'
         '400':
           $ref: '#/components/responses/TokenObtain400'
+      x-stoplight:
+        id: 5t76oo6lkb0a1
     parameters: []
-  /auth/token/refresh/:
+  /auth/token/refresh:
     post:
       tags:
         - auth
@@ -52,6 +57,8 @@ paths:
           $ref: '#/components/responses/TokenObtain200'
         '400':
           $ref: '#/components/responses/TokenRefresh400'
+      x-stoplight:
+        id: noyrcoc9ygbfi
     parameters: []
   /users/me:
     get:
@@ -65,7 +72,7 @@ paths:
           $ref: '#/components/responses/UsersMe200'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /pockets/transactions/:
+  /pockets/transactions:
     get:
       tags:
         - pockets
@@ -109,7 +116,10 @@ paths:
           $ref: '#/components/responses/TransactionCreate400'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  '/pockets/transactions/{transaction_id}/':
+      x-stoplight:
+        id: cfwld3ngnqvrj
+    parameters: []
+  '/pockets/transactions/{transaction_id}':
     get:
       tags:
         - pockets
@@ -132,6 +142,8 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '404':
           description: Not Found
+      x-stoplight:
+        id: 11lboqe41ifgg
     put:
       tags:
         - pockets
@@ -158,6 +170,8 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '404':
           description: Not Found
+      x-stoplight:
+        id: wfqku5qo7qzsu
     patch:
       tags:
         - pockets
@@ -184,6 +198,8 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '404':
           description: Not Found
+      x-stoplight:
+        id: ur1p8o3evj492
     delete:
       tags:
         - pockets
@@ -206,7 +222,15 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '404':
           description: Not Found
-  /pockets/transactions/global/:
+      x-stoplight:
+        id: dophz1wdndusj
+    parameters:
+      - schema:
+          type: string
+        name: transaction_id
+        in: path
+        required: true
+  /pockets/transactions/total:
     get:
       tags:
         - pockets
@@ -219,7 +243,10 @@ paths:
           $ref: '#/components/responses/TransactionGlobal200'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /pockets/transactions/balance/:
+      x-stoplight:
+        id: 82xk2r226cxmx
+    parameters: []
+  /pockets/transactions/balance:
     get:
       tags:
         - pockets
@@ -232,22 +259,10 @@ paths:
           $ref: '#/components/responses/TransactionBalance200'
         '401':
           $ref: '#/components/responses/Unauthorized'
+      x-stoplight:
+        id: 1rlzg9laitlk1
     parameters: []
-  /pockets/transactions/expenses-by-categories/:
-    get:
-      tags:
-        - pockets
-        - transactions
-      summary: Expenses by categories
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          $ref: '#/components/responses/ExpensesByCategories200'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-    parameters: []
-  /pockets/categories/:
+  /pockets/categories:
     get:
       tags:
         - pockets
@@ -265,6 +280,8 @@ paths:
             type: string
           in: query
           name: order_by
+      x-stoplight:
+        id: hjdlc2c1u2hy5
     post:
       tags:
         - pockets
@@ -281,7 +298,10 @@ paths:
           $ref: '#/components/responses/CategoryCreate400'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  '/pockets/categories/{category_id}/':
+      x-stoplight:
+        id: 08apjd8r55ij5
+    parameters: []
+  '/pockets/categories/{category_id}':
     get:
       tags:
         - pockets
@@ -304,6 +324,8 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '404':
           description: Not Found
+      x-stoplight:
+        id: klrzfl4uoz4hn
     put:
       tags:
         - pockets
@@ -330,6 +352,8 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '404':
           description: Not Found
+      x-stoplight:
+        id: v9d3ruwybw54h
     patch:
       tags:
         - pockets
@@ -356,6 +380,8 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '404':
           description: Not Found
+      x-stoplight:
+        id: nwwwy9hr9cpl5
     delete:
       tags:
         - pockets
@@ -378,12 +404,20 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '404':
           description: Not Found
-  /pockets/categories/top-three/:
+      x-stoplight:
+        id: bmgmiiwmjb40c
+    parameters:
+      - schema:
+          type: string
+        name: category_id
+        in: path
+        required: true
+  /pockets/categories/top:
     get:
       tags:
         - pockets
         - categories
-      summary: Categories top three
+      summary: Categories top
       security:
         - bearerAuth: []
       responses:
@@ -391,8 +425,10 @@ paths:
           $ref: '#/components/responses/TopCategories200'
         '401':
           $ref: '#/components/responses/Unauthorized'
+      x-stoplight:
+        id: h78xi714jru22
     parameters: []
-  /goals/mine/:
+  /goals/mine:
     get:
       summary: Goals list
       tags:
@@ -414,7 +450,7 @@ paths:
       security:
         - bearerAuth: []
       x-stoplight:
-        id: gwjt5xpcy5tuy
+        id: 43yuigccjlneh
     post:
       summary: Goal create
       operationId: post-pockets-transactions-goals
@@ -436,9 +472,9 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/GoalCreateRequestBody'
       x-stoplight:
-        id: azi2z42ojpupp
+        id: saqecja03lamy
     parameters: []
-  '/goals/mine/{goal_id}/':
+  '/goals/{goal_id}':
     parameters:
       - schema:
           type: string
@@ -463,7 +499,7 @@ paths:
       security:
         - bearerAuth: []
       x-stoplight:
-        id: cllfr5uk596e1
+        id: jpfj3jqv4nads
     put:
       summary: Goal update
       operationId: put-pockets-goals-goal_id
@@ -486,7 +522,7 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/GoalCreateRequestBody'
       x-stoplight:
-        id: 433ciitb2chbo
+        id: ernxidons0ftp
     patch:
       summary: Goal partial_update
       operationId: patch-pockets-goals-goal_id
@@ -509,7 +545,7 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/GoalCreateRequestBody'
       x-stoplight:
-        id: 7ab7nupawl4ks
+        id: pfckkx3uhvn6n
     delete:
       summary: Goal destroy
       operationId: delete-pockets-goals-goal_id
@@ -530,8 +566,8 @@ paths:
       security:
         - bearerAuth: []
       x-stoplight:
-        id: pp650rnkvi7kv
-  /goals/mine/refill/:
+        id: l6ouy1e6z723i
+  /goals/refill:
     post:
       summary: Пополнение цели
       operationId: post-goals-mine-refill
@@ -555,7 +591,16 @@ paths:
             schema:
               $ref: '#/components/schemas/GoalRefill'
         description: ''
-  /goals/mine/complete/:
+      x-stoplight:
+        id: 0q2q3jkt113n0
+    parameters: []
+  '/goals/{goal_id}/complete':
+    parameters:
+      - schema:
+          type: string
+        name: goal_id
+        in: path
+        required: true
     patch:
       summary: Завершение цели
       operationId: patch-goals-mine-complete
@@ -568,8 +613,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/PermissionDenied'
-      x-stoplight:
-        id: rheez1wfifmwt
       tags:
         - goals
         - mine
@@ -579,11 +622,8 @@ paths:
           application/json:
             schema:
               type: object
-              properties:
-                goal_id:
-                  type: integer
-                  x-stoplight:
-                    id: oo15wibzz9vo3
+      x-stoplight:
+        id: j8kjb2kzs0wmt
 components:
   securitySchemes:
     bearerAuth:
@@ -646,32 +686,18 @@ components:
           type: integer
         percent:
           type: integer
-        status:
+        is_completed:
           type: boolean
-          x-stoplight:
-            id: 1f98c5tjdlfzy
     GoalRefill:
       title: GoalRefill
-      x-stoplight:
-        id: 53x5p3k15qd4e
       type: object
       properties:
         goal:
           type: integer
-          x-stoplight:
-            id: ftmq55ra1gtjh
         amount:
           $ref: '#/components/schemas/Decimal'
     GoalCreate:
       type: object
-      x-examples:
-        Example 1:
-          name: string
-          target_amount: 0
-          start_amount: 0
-          category: 0
-          term: 0
-          percent: 0
       properties:
         name:
           type: string
@@ -749,15 +775,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/GoalCreate'
-          examples:
-            Example 1:
-              value:
-                name: string
-                target_amount: 0
-                start_amount: 0
-                category: 0
-                term: 0
-                percent: 0
+          examples: {}
     GoalRefillRequestBody:
       content:
         application/json:
@@ -1017,9 +1035,6 @@ components:
             properties:
               detail:
                 type: string
-            x-examples:
-              Example 1:
-                detail: У вас недостаточно прав для выполнения данного действия.
           examples:
             Example 1:
               value:
@@ -1030,18 +1045,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/GoalRetrieve'
-          examples:
-            Example 1:
-              value:
-                id: 0
-                name: string
-                target_amount: 0
-                start_amount: 0
-                category:
-                  id: 0
-                  name: string
-                term: 0
-                percent: 0
+          examples: {}
     GoalsList200:
       description: Example response
       content:
@@ -1111,12 +1115,6 @@ components:
                 type: array
                 items:
                   type: string
-            x-examples:
-              Example 1:
-                goal:
-                  - Обязательное поле.
-                amount:
-                  - Обязательное поле.
     GoalComplete400:
       description: Example response
       content:
@@ -1128,7 +1126,3 @@ components:
                 type: array
                 items:
                   type: string
-            x-examples:
-              Example 1:
-                goal_id:
-                  - Обязательное поле.
