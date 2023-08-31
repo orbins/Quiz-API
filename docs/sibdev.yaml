@@ -433,7 +433,6 @@ paths:
       summary: Goals list
       tags:
         - goals
-        - mine
       responses:
         '200':
           $ref: '#/components/responses/GoalsList200'
@@ -485,7 +484,6 @@ paths:
       summary: Goal retrieve
       tags:
         - goals
-        - mine
       responses:
         '200':
           $ref: '#/components/responses/Goals200'
@@ -582,7 +580,6 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
       tags:
         - goals
-        - mine
       security:
         - bearerAuth: []
       requestBody:
@@ -615,7 +612,6 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
       tags:
         - goals
-        - mine
       description: ''
       requestBody:
         content: {}
@@ -624,7 +620,8 @@ paths:
   /goals/analyze:
     get:
       summary: Goals analyze
-      tags: []
+      tags:
+        - goals
       responses:
         '200':
           $ref: '#/components/responses/GoalAnalyze200'
@@ -640,7 +637,8 @@ paths:
   /api/goals/dashboard:
     get:
       summary: Goals dashboard
-      tags: []
+      tags:
+        - goals
       responses:
         '200':
           $ref: '#/components/responses/GoalDashboard200'
@@ -651,10 +649,13 @@ paths:
       operationId: get-api-goals-dashboard
       x-stoplight:
         id: 7o1opx8vm5pyf
+      security:
+        - bearerAuth: []
   /api/goals/top:
     get:
       summary: Top goals
-      tags: []
+      tags:
+        - goals
       responses:
         '200':
           $ref: '#/components/responses/GoalTop200'
@@ -665,6 +666,55 @@ paths:
       operationId: get-api-goals-top
       x-stoplight:
         id: 5sedi2ij1atd3
+      security:
+        - bearerAuth: []
+  /api/pockets/transactions/export:
+    get:
+      summary: Export operations
+      tags:
+        - transactions
+      responses:
+        '200':
+          description: ''
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  file:
+                    type: string
+                    x-stoplight:
+                      id: n3ir7y3sp9vma
+                    format: byte
+            application/xml:
+              schema:
+                type: object
+                properties: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+      operationId: get-api-pockets-transactions-export
+      x-stoplight:
+        id: kobctnb9s1nhm
+      description: ''
+      security:
+        - bearerAuth: []
+  /api/pockets/transactions/import:
+    post:
+      summary: Import operations
+      operationId: post-api-pockets-transactions-import
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+      x-stoplight:
+        id: zrbgfthzjz6lv
+      tags:
+        - transactions
 components:
   securitySchemes:
     bearerAuth:
