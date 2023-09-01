@@ -904,6 +904,29 @@ components:
             id: gec2hl7pf9wan
           minimum: 0
           maximum: 100
+    Pagination:
+      title: Pagination
+      x-stoplight:
+        id: rtel8lqd0bfni
+      type: object
+      properties:
+        count:
+          type: integer
+          x-stoplight:
+            id: j6jt6sdihv9ic
+          minimum: 0
+        next:
+          type: string
+          x-stoplight:
+            id: k9918o010y8bf
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          x-stoplight:
+            id: mloo051pyogs8
+          format: uri
+          nullable: true
   requestBodies:
     RegistrationRequestBody:
       content:
@@ -1038,22 +1061,14 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              count:
-                type: number
-              next:
-                type: string
-                format: uri
-                nullable: true
-              previous:
-                type: string
-                format: uri
-                nullable: true
-              result:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TransactionRetrieve'
+            allOf:
+              - $ref: '#/components/schemas/Pagination'
+              - type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransactionRetrieve'
     Transactions200:
       description: Success
       content:
@@ -1123,9 +1138,11 @@ components:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/CategoryWithExpensesSums'
+            allOf:
+              - $ref: '#/components/schemas/Pagination'
+              - type: array
+                items:
+                  $ref: '#/components/schemas/CategoryWithExpensesSums'
     Unauthorized:
       description: Example response
       content:
@@ -1236,9 +1253,11 @@ components:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/GoalRetrieve'
+            allOf:
+              - $ref: '#/components/schemas/Pagination'
+              - type: array
+                items:
+                  $ref: '#/components/schemas/GoalRetrieve'
     CategoryWithExpenses200:
       description: Example response
       content:
